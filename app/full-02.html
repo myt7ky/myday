@@ -62,10 +62,14 @@ const EXPENSE_BRANDS={
 const EXPENSE_PURPOSES=[[/подар|день рож|юбиле|свадьб/i,'подарок'],[/учеб|курс|обуч|книг|учебник/i,'обучение'],[/работ|офис|командир/i,'работа'],[/дом|квартир|ремонт|обстанов/i,'дом'],[/здоров|врач|лекар|спорт|зал/i,'здоровье'],[/подписк|ежемесяч|каждый месяц/i,'регулярный платёж']];
 const expenseKind=(i)=>{
   const n=(i.name+' '+(i.why||'')).toLowerCase();
-  for(const [cat,re,kind] of EXPENSE_RULES) if(re.test(n)) return {cat,kind};
-  for(const [cat,brands] of Object.entries(EXPENSE_BRANDS)) if(brands.some(x=>n.includes(x.toLowerCase()))) return {cat,kind:'брендовый товар/сервис'};
+  // Сначала точные брендовые совпадения, затем смысловые правила.
+  for(const [cat,brands] of Object.entries(EXPENSE_BRANDS)){
+    if(brands.some(x=>n.includes(x.toLowerCase()))) return {cat,kind:'известный бренд/сервис'};
+  }
+  // Не используем универсальное правило «Другое» как реальное совпадение.
+  for(const [cat,re,kind] of EXPENSE_RULES.slice(0,-1)) if(re.test(n)) return {cat,kind};
   const purpose=EXPENSE_PURPOSES.find(([re])=>re.test(n));
-  return {cat:purpose?purpose[1]:'Другое',kind:purpose?purpose[1]:'прочее'};
+  return {cat:'Другое',kind:purpose?purpose[1]:'прочее'};
 };
 const localPurchaseAnalysis=i=>{
   const n=(i.name||'').toLowerCase(),r=expenseKind(i),exp=r.cat==='Еда и кафе'||r.cat==='Развлечения'||r.cat==='Одежда'||r.cat==='Техника';
