@@ -68,7 +68,31 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 <div class="app"><aside class="sidebar"><div class="brand"><div class="mark">◒</div><h1>Мой день</h1><p>Финансы · дела · здоровье</p></div><nav id="nav"></nav><div class="side-actions"><button class="small-action" id="sideSearch">⌕ Поиск <span style="float:right;color:var(--muted)">Ctrl K</span></button><button class="small-action" id="sideTheme">◐ Тема</button></div></aside><div class="workspace"><header><div class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="page-title"><div class="eyebrow">ЛИЧНЫЙ ТРЕКЕР</div><h2 id="pageTitle">Сегодня</h2></div><div class="top-spacer"></div><div class="search-launch"><button id="searchLaunch">Поиск по данным приложения…</button></div><span id="sync" class="sync-pill">📱 только это устройство</span></div><div id="subnav"></div></header><main>
 <div id="remind"></div>
 <section id="t-ov">
-  <div class="tiles" id="tiles"></div>
+  <div class="tiles" id="tiles"></div><div class="card" id="smartOverview" style="margin-top:12px">
+  <h2>🧠 Умный обзор</h2>
+  <div id="smartInsights"></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <h2>💰 Бюджеты по категориям</h2>
+  <div class="fg">
+    <label>Категория<select id="budgetCat"></select></label>
+    <label>Лимит на месяц<input id="budgetAmount" type="number" inputmode="decimal" min="0" step="any" placeholder="Например: 300"></label>
+  </div>
+  <button class="btn" id="budgetAdd" style="margin-top:10px">Сохранить лимит</button>
+  <div id="budgetList" style="margin-top:12px"></div>
+</div>
+<div class="card" style="margin-top:12px">
+  <h2>🔁 Повторяющиеся записи</h2>
+  <p class="meta">Быстро добавляйте регулярные покупки или дела без повторного заполнения формы.</p>
+  <div class="fg">
+    <label>Тип<select id="repeatType"><option value="buy">Покупка</option><option value="task">Дело</option></select></label>
+    <label class="f2">Название<input id="repeatName" maxlength="80"></label>
+    <label>Сумма (для покупки)<input id="repeatAmount" type="number" inputmode="decimal" min="0" step="any"></label>
+    <label>Период<select id="repeatEvery"><option value="7">каждую неделю</option><option value="14">раз в 2 недели</option><option value="30">каждый месяц</option></select></label>
+  </div>
+  <button class="btn" id="repeatAdd" style="margin-top:10px">Добавить правило</button>
+  <div id="repeatList" style="margin-top:12px"></div>
+</div>
   <div class="grid">
     <div class="card"><h2>Недельный лимит (пн–вс)</h2>
       <div class="row"><input id="limit" type="number" inputmode="decimal" min="0" placeholder="Например: 500" style="flex:1;margin:0"><span class="muted" id="limCur"></span></div>
