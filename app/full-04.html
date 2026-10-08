@@ -1,0 +1,200 @@
+
+/* ===== meals diary ===== */
+$('m_date').value=today();
+$('m_meal').innerHTML=['Завтрак','Обед','Ужин','Перекус'].map(m=>'<option>'+m+'</option>').join('');
+const n0=v=>{v=parseFloat(v);return isFinite(v)&&v>=0?Math.round(v*10)/10:0};
+const scoreBadge=x=>el('span','badge '+(x>=7?'good':x>=5?'mid':'bad'),x+'/10');
+$('mAdd').onclick=async()=>{
+  const text=$('m_text').value.trim();if(!text){toast('Напишите, что вы съели');return}
+  const mode=$('m_mode').value,manual=n0($('m_kcal').value),btn=$('mAdd');
+  const m={id:Date.now(),date:$('m_date').value||today(),meal:$('m_meal').value,text:text.slice(0,200),kcal:0,p:0,f:0,c:0,score:0,note:'',est:true};
+  let sw=0,sk=0,unk=[],ai=text;const notes=[];
+  const add=(k,p,f,c,s)=>{m.kcal+=k;m.p+=p;m.f+=f;m.c+=c;sw+=s*k;sk+=k};
+  if(mode!=='ai'){const L=localMeal(text);unk=L.unk;L.items.forEach(i=>add(i.k,i.p,i.f,i.c,i.s));
+    if(L.items.length)notes.push('По базе: '+L.items.map(i=>i.n+' '+i.g+' г').join(', '));
+    [...new Set(L.items.map(i=>i.note).filter(Boolean))].forEach(x=>notes.push(x));ai=unk.join(', ')}
+  if(mode==='db'&&unk.length)notes.push('Не найдено в базе: '+unk.join(', '));
+  if(mode==='ai'||(mode==='smart'&&unk.length)){
+    if(!sample){try{sample=await claude.use('sample')}catch(e){}}
+    let ok=false;
+    if(sample){btn.disabled=true;btn.textContent='Считаю…';
+      try{const r=await sample.json('Ты — диетолог. Оцени калорийность и пользу приёма пищи. Описание пользователя (JSON-строка): '+JSON.stringify(ai)+'. Если граммовки не указаны, предположи типичные порции и упомяни это в note. Цель пользователя: '+S.prof.goal+'. Оцени пользу по шкале 1-10 (цельные продукты, белок, клетчатка, мало сахара и переработки = выше). Верни ТОЛЬКО JSON без markdown: {"kcal":число,"protein":число,"fat":число,"carbs":число,"score":число,"note":"1-2 предложения: что хорошо, что плохо, допущения"}.',{cache:false});
+        add(n0(r.kcal),n0(r.protein),n0(r.fat),n0(r.carbs),Math.min(10,Math.max(1,parseFloat(r.score)||5)));if(r.note)notes.push(String(r.note));ok=true}catch(e){}
+      btn.disabled=false;btn.textContent='Добавить и посчитать'}
+    if(!ok){if(!manual){toast(sample?'Не удалось посчитать. Попробуйте ещё раз или введите калории вручную.':'ИИ недоступен'+(unk.length?'. Не нашёл в базе: '+unk.join(', '):'')+'. Добавьте продукт в базу или введите калории вручную.');return}
+      if(ai)notes.push('Не распознано: '+ai)}}
+  if(mode==='db'&&!sk&&!manual){toast('Не нашёл в базе: '+unk.join(', ')+'. Добавьте в «Данные → База продуктов» или включите ИИ.');return}
+  if(manual){m.kcal=manual;if(!sk)m.est=false}
+  if(!(m.kcal>0)){toast('Не удалось определить калории. Введите вручную.');return}
+  m.kcal=Math.round(m.kcal);m.p=n0(m.p);m.f=n0(m.f);m.c=n0(m.c);m.score=sk?Math.min(10,Math.max(1,Math.round(sw/sk))):0;m.note=notes.join('. ').slice(0,300);
+  S.meals.push(m);save();gcl('m_',m);['m_text','m_kcal'].forEach(i=>$(i).value='');renderAll();toast('Записано')};
+function renderMeals(){
+  const T=targets(),td=today(),L=S.meals.filter(m=>m.date===td),sum=k=>L.reduce((a,m)=>a+m[k],0),kc=sum('kcal'),pp=sum('p'),ff=sum('f'),cc=sum('c');
+  tiles($('mTiles'),[['Калорий',Math.round(kc)],['Белок, г',Math.round(pp)],['Жиры, г',Math.round(ff)],['Углеводы, г',Math.round(cc)]]);
+  const B=$('mBars');B.innerHTML='';
+  if(T){[['Калории',kc,T.kcal,'ккал'],['Белок',pp,T.pr,'г'],['Жиры',ff,T.fat,'г'],['Углеводы',cc,T.carb,'г']].forEach(([l,v,t,u])=>{
+    B.appendChild(el('div','meta',l+': '+Math.round(v)+' из '+t+' '+u));const p=el('div','prog'),f=document.createElement('i'),r=v/t;f.style.width=Math.min(r*100,100)+'%';f.className=r>1.1&&u==='ккал'?'over':r<0.9?'warn':'';p.appendChild(f);B.appendChild(p)});
+    B.appendChild(el('p',kc>T.kcal?'mid':'meta',kc>T.kcal?'Норма калорий превышена на '+Math.round(kc-T.kcal)+' ккал.':'Осталось: '+Math.round(T.kcal-kc)+' ккал, белка '+Math.max(0,Math.round(T.pr-pp))+' г.'))}
+  else B.appendChild(el('p','meta','Заполните профиль и вес во вкладке «Форма», чтобы видеть прогресс к норме.'));
+  const rated=L.filter(m=>m.score>0),sc=$('mScore');sc.innerHTML='';
+  if(rated.length){const w=rated.reduce((a,m)=>a+m.kcal,0),avg=w?rated.reduce((a,m)=>a+m.score*m.kcal,0)/w:rated.reduce((a,m)=>a+m.score,0)/rated.length,v=Math.round(avg*10)/10;
+    sc.appendChild(el('p',v>=7.5?'good':v>=5?'mid':'bad','Полезность дня: '+v+'/10 · '+(v>=7.5?'хорошо':v>=5?'средне':'слабо')))}
+  const vals=[],labs=[];for(let k=6;k>=0;k--){const d=ds(new Date(Date.now()-k*864e5));vals.push(Math.round(S.meals.filter(m=>m.date===d).reduce((a,m)=>a+m.kcal,0)));labs.push(d.slice(8,10)+'.'+d.slice(5,7))}
+  const C=$('mChart');C.innerHTML='';C.appendChild(bars(vals,labs));$('mChartNote').textContent=T?'Норма: '+T.kcal+' ккал в день.':'';
+  const J=$('mList');J.innerHTML='';const by={};S.meals.forEach(m=>(by[m.date]=by[m.date]||[]).push(m));
+  Object.keys(by).sort().reverse().slice(0,4).forEach(dt=>{J.appendChild(el('div','nm',dt===td?'Сегодня':dmy(dt)));by[dt].sort((a,b)=>a.id-b.id).forEach(m=>{
+    const r=el('div','it'),l=el('div'),h=el('div',null,m.meal+': '+m.text);if(m.score)h.appendChild(scoreBadge(m.score));l.appendChild(h);
+    l.appendChild(el('div','meta',m.kcal+' ккал'+(m.est?' · Б '+m.p+' · Ж '+m.f+' · У '+m.c:' · введено вручную')));if(m.note)l.appendChild(el('div','meta',m.note));
+    r.appendChild(l);r.appendChild(delBtn(()=>{S.meals=S.meals.filter(x=>x.id!==m.id);save();gdl('m_',m.id);renderAll()}));J.appendChild(r)})});
+  if(!S.meals.length)J.appendChild(el('div','empty','Записей пока нет'));
+}
+$('mDay').onclick=()=>{const L=S.meals.filter(m=>m.date===today());
+  askAI($('mDay'),'🍽 Что съесть до конца дня','Ты — диетолог-практик. Сегодня пользователь съел (JSON): '+JSON.stringify(L.map(m=>({приём:m.meal,еда:m.text,ккал:m.kcal,белок:m.p,жиры:m.f,углеводы:m.c,оценка:m.score||null})))+'. '+ctx()+' Продукты, которые он покупал за 30 дней (JSON): '+JSON.stringify(foods().map(i=>i.name))+'. Оцени день по пользе, скажи, чего не хватает относительно нормы (белок, клетчатка, калории), и что съесть до конца дня, желательно из того, что он уже покупает. Что недорого докупить. Это не медицинская рекомендация. Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"assessment":"...","next_meals":[{"title":"...","ingredients":"...","why":"..."}],"buy":["..."],"tips":["..."]}.',
+  $('mDayOut'),drawer([['assessment','Оценка дня'],['next_meals','Что съесть дальше'],['buy','Что докупить'],['tips','Советы']]))};
+
+/* ===== offline food db ===== */
+const norm=t=>String(t).toLowerCase().replace(/ё/g,'е');
+const RAW=`яйцо куриное|яйц,яиц,яичн|157|12.7|11.5|0.7|8|55
+омлет|омлет|154|10.5|12|1|7|0
+куриная грудка (готовая)|грудк,куриная грудь,курин филе,куриное филе|165|31|3.6|0|9|0
+курица (готовая)|куриц,курин,бедр,окорочок,крыл|210|26|11|0|7|0
+говядина (готовая)|говяд,стейк,телятин|250|26|15|0|7|0
+свинина (готовая)|свинин,шашлык|290|25|21|0|5|0
+индейка (готовая)|индейк|160|29|4|0|9|0
+фарш и котлеты (готовые)|фарш,котлет|230|20|16|3|6|60
+колбаса|колбас|300|12|27|2|3|0
+сосиски|сосиск,сардельк|260|11|23|2|3|50
+бекон|бекон|540|37|42|1|2|0
+лосось (готовый)|лосос,семг,форел,красная рыба|208|20|13|0|9|0
+тунец консервированный|тунец|130|28|1|0|9|0
+белая рыба (готовая)|рыба,рыбн,трес,минтай,хек,судак|100|20|2|0|9|0
+креветки|креветк|99|24|0.3|0.2|9|0
+молоко|молок|52|2.9|2.5|4.8|7|0
+кефир|кефир,ряженк|53|3|2.5|4|8|0
+йогурт натуральный|йогурт|60|4|3|4.5|8|0
+творог 5%|творог|121|17|5|3|9|0
+сыр|сыр,моцарелл,пармезан|350|25|28|0.5|5|20
+сметана|сметан|206|2.8|20|3.2|4|0
+сливочное масло|сливочное масл,масло сливочное,масл|748|0.5|82|0.8|3|0
+оливковое масло|оливков|884|0|100|0|6|0
+подсолнечное масло|подсолнечн,растительн|884|0|100|0|5|0
+гречка варёная|гречк,греча|110|4|1|21|9|0
+гречка сухая|гречка сухая,гречка сырая|340|12|3|62|9|0
+рис варёный|рис|130|2.7|0.3|28|6|0
+макароны варёные|макарон,паста,спагетти,лапша,вермишел|158|5.8|0.9|31|5|0
+овсяные хлопья (сухие)|овсянк,хлопья,геркулес,мюсли|370|13|7|62|9|0
+овсяная каша на воде|каша овсян,овсяная каша,овсянка на воде,овсянка на молоке|75|2.5|1.5|13|8|0
+картофель варёный|картофел,картошк|85|2|0.1|19|7|0
+картофель жареный|жареная картош,жареный картофель|190|3|9|25|4|0
+картофель фри|фри|312|3.4|15|41|2|0
+хлеб|хлеб,батон,булк,тост|265|9|3|49|4|30
+цельнозерновой хлеб|цельнозерн,ржаной|250|10|3.5|45|7|30
+банан|банан|89|1.1|0.3|23|8|120
+яблоко|яблок|52|0.3|0.2|14|9|180
+апельсин|апельсин,мандарин|47|0.9|0.1|12|9|150
+виноград|виноград|69|0.7|0.2|18|7|0
+ягоды|ягод,клубник,черник,малин|45|1|0.4|10|10|0
+помидор|помидор,томат|18|0.9|0.2|3.9|10|120
+огурец|огур|15|0.8|0.1|3|10|100
+морковь|морков|41|0.9|0.2|10|10|80
+капуста|капуст|27|1.8|0.1|6|10|0
+брокколи|брокколи|34|2.8|0.4|7|10|0
+салат овощной|салат|40|1.2|2.5|4|9|0
+авокадо|авокадо|160|2|15|9|8|150
+лук|лук|40|1.1|0.1|9|9|0
+чечевица варёная|чечевиц|116|9|0.4|20|10|0
+фасоль варёная|фасол|127|8.7|0.5|23|9|0
+нут варёный|нут|164|8.9|2.6|27|9|0
+арахисовая паста|арахисовая паста,арахисовое масло|590|25|50|20|6|0
+арахис|арахис|567|26|49|16|7|0
+миндаль|миндал|579|21|50|22|8|0
+грецкие орехи|грецк|654|15|65|14|8|0
+орехи (ассорти)|орех|600|18|54|16|8|0
+сухофрукты|курага,изюм,сухофрукт,финик|250|3|0.5|62|7|0
+шоколад|шоколад|535|7|30|59|2|0
+конфеты|конфет|450|3|15|75|1|0
+печенье|печень|450|6|18|68|2|0
+мороженое|мороженое|207|3.5|11|24|2|0
+пицца|пицц|266|11|10|33|3|100
+бургер|бургер,гамбургер,чизбургер|250|12|12|30|3|200
+шаурма|шаурм,шаверм|230|12|12|20|4|300
+чипсы|чипс|536|6.5|35|53|1|0
+кола и газировка|кола ,coca,pepsi,пепси,газировк|42|0|0|10.6|1|0
+сахар|сахар|387|0|0|100|1|0
+мёд|мёд,мед |304|0.3|0|82|4|0
+протеин (порошок)|протеин,изолят,гейнер|380|75|6|8|7|30
+протеиновый батончик|батончик|370|30|12|35|4|60
+кофе|кофе|2|0.3|0|0|8|0
+чай|чай ,чая|1|0|0|0.2|9|0
+сок|сок ,соки|45|0.7|0.2|10|5|0
+суп овощной|суп|40|1.5|1.5|5|8|0
+борщ|борщ|45|1.5|2|5|8|0
+майонез|майонез|627|0.5|67|3|1|0
+кетчуп|кетчуп|100|1.5|0.5|25|3|0
+пельмени и вареники|пельмен,вареник|230|11|10|25|4|0
+блины|блин,оладь|230|6|9|31|4|50
+сырники|сырник|220|13|11|18|6|60`;
+const rowOf=(o,my)=>({n:o.n,al:o.al||'',a:norm(o.n.replace(/\s*\(.*\)/,'')+','+(o.al||'')).split(',').filter(Boolean),k:+o.k,p:+o.p,f:+o.f,c:+o.c,s:+o.s||0,pc:+o.pc||0,my});
+const BUILTIN=RAW.split('\n').filter(Boolean).map(l=>{const [n,a,k,p,f,c,sc,pc]=l.split('|');return rowOf({n,al:a,k,p,f,c,s:sc,pc})});
+const foodList=()=>[...S.foodDb.map(o=>rowOf(o,true)),...BUILTIN];
+function findFood(seg,list){const hay=' '+seg+' ';let best=null,bl=0;for(const f of list)for(const a of f.a){if(a.length>bl&&hay.includes(' '+a)){best=f;bl=a.length}}return best}
+function parseQty(seg,f){
+  const sp=seg.match(/(\d+(?:[.,]\d+)?)?\s*(чайн[а-я]*|столов[а-я]*|ст\.?|ч\.?)?\s*ложк/);
+  if(sp)return{g:(sp[1]?parseFloat(sp[1].replace(',','.')):1)*(sp[2]&&/^(чайн|ч)/.test(sp[2])?5:15),note:''};
+  const m=seg.match(/(\d+(?:[.,]\d+)?)\s*(кг|килограмм[а-я]*|мл|л|литр[а-я]*|гр|грамм[а-я]*|г)(?![а-яa-z])/);
+  if(m){const v=parseFloat(m[1].replace(',','.'));return{g:/^(кг|килограмм|л|литр)/.test(m[2])?v*1000:v,note:''}}
+  const n=seg.match(/(\d+(?:[.,]\d+)?)/),cnt=n?parseFloat(n[1].replace(',','.')):1;
+  if(f.pc)return{g:cnt*f.pc,note:''};
+  const d=f.k>=700||f.c>=80?10:(f.k<=60&&f.p+f.f+f.c<12)?200:150,u=n?cnt*100:d;
+  return{g:u,note:'порция без веса принята '+Math.round(u)+' г'}}
+function localMeal(text){const list=foodList(),items=[],unk=[];
+  norm(text).split(/[,;\n+]|\sи\s|\sс\s/).map(x=>x.trim()).filter(Boolean).forEach(seg=>{const f=findFood(seg,list);if(!f){unk.push(seg);return}
+    const q=parseQty(seg,f),r=q.g/100;items.push({n:f.n,g:Math.round(q.g),k:f.k*r,p:f.p*r,f:f.f*r,c:f.c*r,s:f.s,note:q.note})});
+  return{items,unk}}
+async function saveFile(name,text){
+  if(!dl){try{dl=await claude.use('downloads')}catch(e){}}
+  if(dl){await dl.save({filename:name,data:text});return true}
+  if(typeof claude==='undefined'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove();return true}
+  toast('Скачивание недоступно в этом окне');return false}
+const cloudFood=()=>db&&cw(()=>db.doc(P+'/fooddb').set({rows:S.foodDb}));
+const dbInfo=()=>{$('dbInfo').textContent='Встроено продуктов: '+BUILTIN.length+' · своих: '+S.foodDb.length};
+$('fdq').oninput=()=>{const q=norm($('fdq').value.trim()),box=$('fdr');box.innerHTML='';if(q.length<2)return;
+  const hits=foodList().filter(f=>norm(f.n).includes(q)||f.a.some(a=>(' '+a).includes(' '+q))).slice(0,8);
+  if(!hits.length)box.appendChild(el('div','meta','Не найдено. Добавьте продукт в свою базу (Данные).'));
+  hits.forEach(f=>{const r=el('div','it');r.appendChild(el('div',null,f.n+(f.my?' ★':'')));r.appendChild(el('div','meta',f.k+' ккал · Б '+f.p+' · Ж '+f.f+' · У '+f.c+' (на 100 г)'));box.appendChild(r)})};
+$('dbTpl').onclick=async()=>{const rows=[['название','ккал','белок','жиры','углеводы','оценка','штука_г','синонимы']];
+  BUILTIN.forEach(f=>rows.push([f.n,f.k,f.p,f.f,f.c,f.s,f.pc,f.al.replace(/,/g,'/')]));
+  try{if(await saveFile('food-db.csv','\uFEFF'+rows.map(r=>r.map(q).join(';')).join('\r\n')))toast('База сохранена')}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
+$('dbImpBtn').onclick=()=>$('dbImp').click();
+$('dbImp').onchange=()=>{const file=$('dbImp').files[0];if(!file)return;const fr=new FileReader();
+  fr.onload=()=>{try{const rows=parseCSV(String(fr.result)),H=rows[0].map(x=>x.trim().toLowerCase()),ix=n=>H.indexOf(n);
+    const iN=ix('название'),iK=ix('ккал');if(iN<0||iK<0){toast('Нужны столбцы «название» и «ккал»');return}
+    const num2=(r,n)=>{const i=ix(n);return i<0?0:parseFloat(String(r[i]||'0').replace(/\s/g,'').replace(',','.'))||0};
+    const map=new Map(S.foodDb.map(o=>[norm(o.n),o]));let n=0;
+    rows.slice(1,1201).forEach(r=>{const name=(r[iN]||'').trim().slice(0,60);if(!name)return;const i=ix('синонимы');
+      map.set(norm(name),{n:name,k:num2(r,'ккал'),p:num2(r,'белок'),f:num2(r,'жиры'),c:num2(r,'углеводы'),s:Math.min(10,num2(r,'оценка')),pc:num2(r,'штука_г'),al:i<0?'':String(r[i]||'').split('/').map(x=>x.trim()).filter(Boolean).join(',')});n++});
+    S.foodDb=[...map.values()].slice(0,1500);save();cloudFood();dbInfo();toast('Загружено продуктов: '+n)}catch(e){toast('Не удалось прочитать файл')}$('dbImp').value=''};
+  fr.readAsText(file,'utf-8')};
+$('dbClr').onclick=()=>{const b=$('dbClr');if(!b.dataset.a){b.dataset.a='1';b.textContent='Нажмите ещё раз';setTimeout(()=>{b.dataset.a='';b.textContent='Удалить мою базу'},4000);return}
+  S.foodDb=[];save();cloudFood();dbInfo();b.dataset.a='';b.textContent='Удалить мою базу';toast('Своя база удалена')};
+$('eco').checked=!!S.eco;$('eco').onchange=()=>{S.eco=$('eco').checked;save()};
+
+/* full backup */
+$('jExp').onclick=async()=>{const o={v:1,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,foodDb:S.foodDb};
+  try{if(await saveFile('backup-'+today()+'.json',JSON.stringify(o)))toast('Копия сохранена')}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
+$('jImpBtn').onclick=()=>$('jImp').click();
+$('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=new FileReader();
+  fr.onload=async()=>{try{const o=JSON.parse(String(fr.result)),add=[];
+    const V={items:x=>typeof x.name==='string'&&x.amount>0&&x.date,tasks:x=>typeof x.title==='string',gym:x=>typeof x.ex==='string',body:x=>x.w>0,meals:x=>typeof x.text==='string'};
+    [['items','i_'],['tasks','t_'],['gym','g_'],['body','b_'],['meals','m_']].forEach(([k,pre])=>{const have=new Set(S[k].map(x=>x.id));
+      (Array.isArray(o[k])?o[k]:[]).forEach(x=>{if(x&&typeof x==='object'&&x.id&&!have.has(x.id)&&V[k](x)){S[k].push(x);add.push([pre,x])}})});
+    if(o.prof&&typeof o.prof==='object'){S.prof={...S.prof,...o.prof};fillProf();cloudProf()}
+    if(o.limit>0){S.limit=o.limit;$('limit').value=S.limit}if(typeof o.cur==='string'){S.cur=o.cur;$('cur').value=S.cur}cloudSettings(true);
+    if(Array.isArray(o.foodDb)&&o.foodDb.length){const m=new Map(S.foodDb.map(f=>[norm(f.n),f]));o.foodDb.forEach(f=>{if(f&&typeof f.n==='string')m.set(norm(f.n),f)});S.foodDb=[...m.values()].slice(0,1500);cloudFood()}
+    save();renderAll();toast('Загружено записей: '+add.length);for(const [pre,x] of add)await gcl(pre,x)}
+    catch(e){toast('Не удалось прочитать файл')}$('jImp').value=''};
+  fr.readAsText(file,'utf-8')};
+
+function renderAll(){renderRemind();if(tab==='ov')renderOv();if(tab==='buys')renderBuys();if(tab==='tasks')renderTasks();if(tab==='gym')renderGym();if(tab==='body')renderBody();if(tab==='food'){renderFood();renderMeals()}if(tab==='ai')renderAI();if(tab==='data')dbInfo()}
+S.items.forEach(i=>{if(!i.date)i.date=today()});
+(async()=>{
