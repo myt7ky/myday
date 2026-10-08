@@ -14,7 +14,7 @@
 (async()=>{
   const parts=["./app/full-01.html","./app/full-02.html","./app/full-03.html","./app/full-04.html","./app/full-05.html"];
   try{
-    const xs=await Promise.all(parts.map(x=>fetch(x+"?v=14",{cache:"reload"})));
+    const xs=await Promise.all(parts.map(x=>fetch(x+"?v=15",{cache:"reload"})));
     if(xs.some(x=>!x.ok)) throw new Error("Не удалось загрузить приложение");
     const html=(await Promise.all(xs.map(x=>x.text()))).join("");
     document.open();document.write(html);document.close();
