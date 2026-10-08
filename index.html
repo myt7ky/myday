@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="theme-color" content="#5b5bd6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Мой день">
+<title>Мой день</title>
+</head>
+<body style="margin:0;background:#f4f6f8;font-family:system-ui,-apple-system,sans-serif">
+<div style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;color:#6b7280">
+  <div><div style="font-size:32px">◒</div><p>Загрузка «Мой день»…</p></div>
+</div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./app.gz',{cache:'no-store'});
+    if(!r.ok) throw new Error('app.gz: '+r.status);
+    if(!('DecompressionStream' in window)) throw new Error('Нужен более новый Safari/iOS');
+    const ds=new DecompressionStream('gzip');
+    const html=await new Response(r.body.pipeThrough(ds)).text();
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(e){
+    document.body.innerHTML='<div style="padding:24px;line-height:1.5"><h2>Не удалось загрузить приложение</h2><p>Обновите страницу. Для iPhone нужен Safari 16.4 или новее.</p><p style="color:#6b7280;font-size:14px">'+String(e.message||e)+'</p></div>';
+  }
+})();
+</script>
+</body>
+</html>
