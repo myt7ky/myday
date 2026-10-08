@@ -68,7 +68,11 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 <div class="app"><aside class="sidebar"><div class="brand"><div class="mark">◒</div><h1>Мой день</h1><p>Финансы · дела · здоровье</p></div><nav id="nav"></nav><div class="side-actions"><button class="small-action" id="sideSearch">⌕ Поиск <span style="float:right;color:var(--muted)">Ctrl K</span></button><button class="small-action" id="sideTheme">◐ Тема</button></div></aside><div class="workspace"><header><div class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="page-title"><div class="eyebrow">ЛИЧНЫЙ ТРЕКЕР</div><h2 id="pageTitle">Сегодня</h2></div><div class="top-spacer"></div><div class="search-launch"><button id="searchLaunch">Поиск по данным приложения…</button></div><span id="sync" class="sync-pill">📱 только это устройство</span></div><div id="subnav"></div></header><main>
 <div id="remind"></div>
 <section id="t-ov">
-  <div class="tiles" id="tiles"></div><div class="card" id="smartOverview" style="margin-top:12px">
+  <div class="tiles" id="tiles"></div><div class="card" id="dayBrief" style="margin-top:12px">
+  <h2 id="dayBriefTitle">☀️ Мой день</h2>
+  <div id="dayBriefOut" class="an"></div>
+</div>
+<div class="card" id="smartOverview" style="margin-top:12px">
   <h2>🧠 Умный обзор</h2>
   <div id="smartInsights"></div>
 </div>
@@ -406,8 +410,37 @@ function initSmartUI(){
 
 /* overview */
 const sumWeek=()=>{const w=weekStart(today());return S.items.filter(i=>weekStart(i.date)===w).reduce((s,i)=>s+i.amount,0)};
+function renderDayBrief(){
+  const box=$('dayBriefOut');if(!box)return;box.innerHTML='';
+  const hour=new Date().getHours(), evening=hour>=18;
+  $('dayBriefTitle').textContent=evening?'🌙 Итоги дня':'☀️ Мой день';
+  const r=sleepTrainingReadiness(), todayStr=today();
+  const open=S.tasks.filter(t=>!t.done), due=S.tasks.filter(t=>!t.done&&t.due&&t.due.slice(0,10)===todayStr), done=S.tasks.filter(t=>t.done&&t.doneAt&&String(t.doneAt).slice(0,10)===todayStr);
+  const meals=S.meals.filter(m=>m.date===todayStr), T=targets();
+  const kcal=meals.reduce((a,m)=>a+(Number(m.kcal)||0),0), protein=meals.reduce((a,m)=>a+(Number(m.p)||0),0);
+  const spend=S.items.filter(i=>i.date===todayStr).reduce((a,i)=>a+i.amount,0);
+  let score=100, notes=[];
+  if(r.score!=null){score=Math.round(score*.35+65);if(r.score<60){score-=10;notes.push('Сон слабый — сегодня лучше беречь восстановление.')}else if(r.score<80)notes.push('Сон нормальный, но без максимальной нагрузки.');else notes.push('Сон хороший — организм готов к обычной тренировке.')}
+  if(T&&meals.length){const pk=protein/(T.pr||1);if(pk<.6){score-=8;notes.push('Белка пока мало относительно дневной цели.')}else if(pk>=.9)notes.push('Белковая цель почти выполнена.')}
+  if(due.length>2){score-=5;notes.push('На сегодня осталось '+due.length+' дел — выберите 1–2 главных.')}
+  score=Math.max(0,Math.min(100,score));
+  const title=evening?(score>=80?'День прошёл хорошо':'День можно завершить спокойнее'):(score>=80?'Хороший старт дня':score>=60?'День требует внимания':'Сегодня лучше не перегружаться');
+  box.appendChild(el('div','nm',title+' · '+score+'/100'));
+  notes.slice(0,3).forEach(x=>box.appendChild(el('p',null,'• '+x)));
+  const stats=[];
+  stats.push('😴 Сон: '+(r.score==null?'нет записи':sleepHM(r.lastDur)));
+  stats.push('💪 Тренировка: '+(r.score==null?'оценка появится после сна':r.score+'/100'));
+  stats.push('✅ Дела: '+done.length+' выполнено · '+open.length+' открыто'+(due.length?' · '+due.length+' на сегодня':''));
+  stats.push('🍽️ Питание: '+(meals.length?(Math.round(kcal)+' ккал'+(T?' · белок '+Math.round(protein)+'/'+T.pr+' г':'')):'нет записей сегодня'));
+  stats.push('💰 Траты сегодня: '+fmt(spend));
+  stats.forEach(x=>box.appendChild(el('p','meta',x)));
+  if(evening)box.appendChild(el('p','meta','🌙 Перед сном: отметьте сон позже — завтра готовность к тренировке пересчитается автоматически.'));
+  else box.appendChild(el('p','meta','🎯 Фокус: '+(due.length?due.slice(0,2).map(t=>t.title).join(' · '):'выберите главное дело на сегодня')));
+}
+
 function renderOv(){
   initSmartUI();
+  renderDayBrief();
   const mo=today().slice(0,7),tot=S.items.reduce((s,i)=>s+i.amount,0),m=S.items.filter(i=>i.date.startsWith(mo)).reduce((s,i)=>s+i.amount,0);
   const T=$('tiles');T.innerHTML='';
   [['За эту неделю',fmt(sumWeek())],['За этот месяц',fmt(m)],['Всего',fmt(tot)],['Покупок',String(S.items.length)],['Тренировок за 7 дней',String(new Set(S.gym.filter(g=>g.date>=ds(new Date(Date.now()-6*864e5))).map(g=>g.date)).size)],['Вес',lastW()?lastW().w+' кг':'—']].forEach(([a,b])=>{const t=el('div','tile');t.appendChild(el('span','muted',a));t.appendChild(el('b',null,b));T.appendChild(t)});
