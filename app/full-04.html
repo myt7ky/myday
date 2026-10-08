@@ -57,7 +57,7 @@ const sec=(o,h,x,c)=>{if(!x||(Array.isArray(x)&&!x.length))return;o.appendChild(
 const drawer=m=>(r,o)=>m.forEach(([k,h])=>sec(o,h,r[k]));
 async function askAI(btn,label,prompt,out,draw){
   if(!sample){try{sample=await claude.use('sample')}catch(e){}}
-  if(!sample){toast('ИИ недоступен в этом окне. Откройте страницу в Claude.');return}
+  if(!sample){toast('ИИ ещё не подключён. Добавьте ANTHROPIC_API_KEY на сервер.');return}
   btn.disabled=true;btn.textContent='Анализирую…';
   try{const r=await sample.json(prompt,{cache:false});out.innerHTML='';draw(r,out)}
   catch(e){toast(e&&e.code==='not_granted'?'Нужно разрешить доступ к ИИ':'Не удалось получить ответ, попробуйте ещё раз')}
