@@ -65,7 +65,7 @@ const localPurchaseAnalysis=i=>{
   return{verdict,pros,cons,harsh:verdict==='зря'?'Покупка выглядит слабой по соотношению цены и пользы.':verdict==='спорно'?'Не критичная трата, но её стоит контролировать, особенно если она повторяется.':'Похоже на оправданную трату, если она соответствует вашему плану.',alt:alt.join('; ')};
 };
 const KEY='spend-v1';
-let S={items:[],cur:'RON',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],foodDb:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
+let S={items:[],cur:'RON',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],foodDb:[],budgets:{},recurring:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)S={...S,...s}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
@@ -109,9 +109,65 @@ $('eSave').onclick=()=>{const v=readF('e_');if(!v)return;const i=S.items.find(x=
 $('eDel').onclick=()=>{const b=$('eDel');if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Точно удалить?';return}
 const id=editId;S.items=S.items.filter(x=>x.id!==id);delete S.analysis[id];save();cloudDel(id);cloudAnalysis();closeM();renderAll();toast('Удалено')};
 
+/* smart overview / budgets / recurring */
+function monthSpent(cat){
+  const m=today().slice(0,7);
+  return S.items.filter(i=>i.date.startsWith(m)&&(!cat||i.cat===cat)).reduce((s,i)=>s+i.amount,0);
+}
+function renderBudgets(){
+  const sel=$('budgetCat'); if(!sel)return;
+  sel.innerHTML=CATS.map(x=>'<option>'+x+'</option>').join('');
+  const box=$('budgetList');box.innerHTML='';
+  Object.entries(S.budgets||{}).forEach(([cat,lim])=>{
+    const spent=monthSpent(cat),pct=lim?spent/lim*100:0;
+    const row=el('div','meta');row.style.marginBottom='10px';
+    row.innerHTML='<b>'+cat+'</b> · '+fmt(spent)+' / '+fmt(lim)+' · '+Math.round(pct)+'%';
+    const p=el('div','prog');const f=document.createElement('i');f.style.width=Math.min(pct,100)+'%';p.appendChild(f);row.appendChild(p);
+    box.appendChild(row);
+  });
+  if(!Object.keys(S.budgets||{}).length)box.appendChild(el('div','meta','Лимитов по категориям пока нет.'));
+}
+function renderRecurring(){
+  const box=$('repeatList');if(!box)return;box.innerHTML='';
+  (S.recurring||[]).forEach((r,idx)=>{
+    const row=el('div','row');row.style.marginBottom='8px';
+    row.appendChild(el('span',null,(r.type==='buy'?'💳 ':'✅ ')+r.name+(r.amount?' · '+fmt(r.amount):'')+' · раз в '+r.every+' дн.'));
+    const b=el('button','btn sec','Добавить сейчас');b.onclick=()=>{
+      if(r.type==='buy'){const it={id:Date.now(),name:r.name,amount:Number(r.amount)||0,date:today(),cat:r.cat||CATS[0],feel:'',why:'повторяющаяся покупка'};if(!(it.amount>0)){toast('Укажите сумму правила');return}S.items.push(it)}
+      else S.tasks.push({id:Date.now(),title:r.name,due:today()+'T18:00',prio:'обычная',done:false});
+      r.last=today();save();renderAll();toast('Добавлено');
+    };
+    const d=el('button','btn sec','Удалить');d.onclick=()=>{S.recurring.splice(idx,1);save();renderAll()};row.appendChild(b);row.appendChild(d);box.appendChild(row);
+  });
+  if(!S.recurring.length)box.appendChild(el('div','meta','Правил пока нет.'));
+}
+function renderSmartInsights(){
+  const box=$('smartInsights');if(!box)return;box.innerHTML='';
+  const out=[];
+  const spent=sumWeek(),avg=S.items.length?S.items.reduce((a,i)=>a+i.amount,0)/Math.max(1,new Set(S.items.map(i=>i.date)).size):0;
+  if(S.limit&&spent>S.limit)out.push('⚠️ Недельный лимит превышен на '+fmt(spent-S.limit)+'.');
+  const mo=today().slice(0,7),mitems=S.items.filter(i=>i.date.startsWith(mo)),days=new Set(mitems.map(i=>i.date)).size;
+  if(mitems.length&&days>=3){const forecast=(mitems.reduce((a,i)=>a+i.amount,0)/days)*new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();out.push('📈 Прогноз расходов за месяц: около '+fmt(forecast)+'.');}
+  const cats={};mitems.forEach(i=>cats[i.cat]=(cats[i.cat]||0)+i.amount);const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  if(top)out.push('💰 Самая дорогая категория месяца: '+top[0]+' — '+fmt(top[1])+'.');
+  const open=(S.tasks||[]).filter(t=>!t.done).length;if(open)out.push('✅ Незавершённых дел: '+open+'. Сначала закройте самые срочные.');
+  const gd=new Date(Date.now()-6*864e5);const workouts=new Set((S.gym||[]).filter(g=>g.date>=ds(gd)).map(g=>g.date)).size;
+  if(workouts)out.push('💪 Тренировок за 7 дней: '+workouts+'.');
+  const w=lastW();if(w&&S.body.length>1){const prev=S.body.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-2,-1)[0];if(prev&&Math.abs(w.w-prev.w)>=0.3)out.push('⚖️ Вес изменился на '+(w.w-prev.w>0?'+':'')+(w.w-prev.w).toFixed(1)+' кг с прошлого измерения.');}
+  const mealDays=new Set((S.meals||[]).filter(x=>x.date===today()).map(x=>x.date));if(mealDays.size)out.push('🍎 Питание сегодня записывается — дневник подключён к обзору.');
+  if(!out.length)out.push('✨ Пока всё спокойно. Добавляйте покупки, дела, тренировки и питание — обзор будет собирать картину автоматически.');
+  box.innerHTML=out.map(x=>'<div class="meta" style="padding:7px 0">'+x+'</div>').join('');
+}
+function initSmartUI(){
+  const b=$('budgetAdd');if(b&&!b.dataset.bound){b.dataset.bound='1';b.onclick=()=>{const cat=$('budgetCat').value,a=Number($('budgetAmount').value);if(!(a>0)){toast('Укажите лимит');return}S.budgets[cat]=a;save();renderAll();toast('Лимит сохранён')}}
+  const r=$('repeatAdd');if(r&&!r.dataset.bound){r.dataset.bound='1';r.onclick=()=>{const name=$('repeatName').value.trim(),type=$('repeatType').value,every=Number($('repeatEvery').value),amount=Number($('repeatAmount').value)||0;if(!name||(type==='buy'&&!(amount>0))){toast(type==='buy'?'Укажите название и сумму':'Укажите название');return}S.recurring.push({id:Date.now(),name,type,every,amount,cat:CATS[0],last:''});save();$('repeatName').value='';$('repeatAmount').value='';renderAll();toast('Правило добавлено')}}
+  renderBudgets();renderRecurring();renderSmartInsights();
+}
+
 /* overview */
 const sumWeek=()=>{const w=weekStart(today());return S.items.filter(i=>weekStart(i.date)===w).reduce((s,i)=>s+i.amount,0)};
 function renderOv(){
+  initSmartUI();
   const mo=today().slice(0,7),tot=S.items.reduce((s,i)=>s+i.amount,0),m=S.items.filter(i=>i.date.startsWith(mo)).reduce((s,i)=>s+i.amount,0);
   const T=$('tiles');T.innerHTML='';
   [['За эту неделю',fmt(sumWeek())],['За этот месяц',fmt(m)],['Всего',fmt(tot)],['Покупок',String(S.items.length)],['Тренировок за 7 дней',String(new Set(S.gym.filter(g=>g.date>=ds(new Date(Date.now()-6*864e5))).map(g=>g.date)).size)],['Вес',lastW()?lastW().w+' кг':'—']].forEach(([a,b])=>{const t=el('div','tile');t.appendChild(el('span','muted',a));t.appendChild(el('b',null,b));T.appendChild(t)});
