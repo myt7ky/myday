@@ -140,7 +140,7 @@ function renderBuys(){
 /* AI */
 function renderAI(){
   $('run').textContent=Object.keys(S.analysis).length?'🔍 Проанализировать заново':'🔍 Проанализировать';
-  $('aiNote').textContent=sample?'':'ИИ-анализ доступен, когда страница открыта внутри Claude.';
+  $('aiNote').textContent=sample?'':'ИИ-анализ работает через Claude API.';
   const o=$('aiOut');o.innerHTML='';
   if(S.overall){const c=el('div','card an');c.appendChild(el('h2',null,'Общий вывод'));
     if(S.overall.summary)c.appendChild(el('p',null,S.overall.summary));if(S.overall.wasted)c.appendChild(el('p','bad','🔥 Ушло впустую: '+S.overall.wasted));
@@ -157,7 +157,7 @@ function renderAI(){
 $('run').onclick=async()=>{
   if(!S.items.length){toast('Сначала добавьте покупки');return}
   if(!sample){try{sample=await claude.use('sample')}catch(e){}}
-  if(!sample){toast('ИИ недоступен в этом окне. Откройте страницу в Claude.');return}
+  if(!sample){toast('ИИ ещё не подключён. Добавьте ANTHROPIC_API_KEY на сервер.');return}
   const b=$('run');b.disabled=true;b.textContent='Анализирую…';
   const data=[...S.items].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,60).map(i=>({id:i.id,дата:i.date,название:i.name,сумма:i.amount,валюта:S.cur,категория:i.cat,моя_оценка:i.feel||null,зачем:i.why||null}));
   const prompt='Ты — прямолинейный и жёсткий финансовый советник. Ниже список покупок пользователя (JSON). Критикуй решения, а не личность: без оскорблений, но без смягчений и воды. Для каждой покупки: honest verdict, pros (реальная польза), cons (реальные минусы), harsh (1-2 жёстких предложения о том, насколько это было оправданно), alt (2-3 КОНКРЕТНЫХ способа потратить эти же деньги лучше: подушка безопасности, долги, инвестиции в навыки, здоровье, накопления — с примерными цифрами, например сколько это в год или на сколько хватит). Если покупка действительно разумная, так и скажи, не придумывай претензий. Затем общий вывод: summary, wasted (сколько денег по твоей оценке ушло впустую и что на них можно было сделать), better (как перераспределить траты), tips (2-3 жёстких правила). Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"items":[{"id":число,"verdict":"стоило"|"спорно"|"зря","pros":"...","cons":"...","harsh":"...","alt":"..."}],"overall":{"summary":"...","wasted":"...","better":"...","tips":["...","..."]}}. Данные: '+JSON.stringify(data);
