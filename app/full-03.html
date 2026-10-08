@@ -1,0 +1,200 @@
+    snap.docs.forEach(d=>{const x=d.data();if(!x)return;if(d.id.startsWith('i_'))its.push(x);else if(d.id.startsWith('t_'))tks.push(x);else if(d.id.startsWith('g_'))gms.push(x);else if(d.id.startsWith('b_'))bds.push(x);else if(d.id.startsWith('m_'))mls.push(x);else if(d.id==='profile')pr=x;else if(d.id==='fooddb')fdb=x;else if(d.id==='settings')st=x;else if(d.id==='analysis')an=x});
+    if(!S.synced){S.synced=true;const have=new Set(its.map(i=>i.id)),up=S.items.filter(i=>!have.has(i.id));
+      if(up.length){its.push(...up);cloudBulk(up,true)}
+      const hT=new Set(tks.map(t=>t.id));S.tasks.filter(t=>!hT.has(t.id)).forEach(t=>{tks.push(t);cloudTask(t)});
+      const hG=new Set(gms.map(g=>g.id));S.gym.filter(g=>!hG.has(g.id)).forEach(g=>{gms.push(g);gcl('g_',g)});const hB=new Set(bds.map(g=>g.id));S.body.filter(g=>!hB.has(g.id)).forEach(g=>{bds.push(g);gcl('b_',g)});if(!pr)cloudProf();const hM=new Set(mls.map(g=>g.id));S.meals.filter(g=>!hM.has(g.id)).forEach(g=>{mls.push(g);gcl('m_',g)});if(!fdb&&S.foodDb.length)cloudFood();
+      if(!st)cloudSettings(true);
+      if(!an&&Object.keys(S.analysis).length){an={map:S.analysis};cloudAnalysis()}}
+    S.items=its;S.tasks=tks;S.gym=gms;S.body=bds;S.meals=mls;if(fdb)S.foodDb=fdb.rows||[];if(pr&&!snap.metadata.hasPendingWrites){S.prof={...S.prof,...pr};fillProf()}S.items.forEach(i=>{if(!i.date)i.date=today()});
+    if(an)S.analysis=an.map||{};
+    if(st&&!snap.metadata.hasPendingWrites){S.cur=st.cur||S.cur;S.limit=st.limit||0;S.overall=st.overall||null;$('cur').value=S.cur;if(document.activeElement!==$('limit'))$('limit').value=S.limit||''}
+    save();renderAll();
+  },e=>{db=null;setSync();toast('Синхронизация недоступна, данные сохраняются на устройстве')});
+}
+
+/* tasks */
+const cloudTask=t=>db&&cw(()=>db.doc(P+'/t_'+t.id).set(t));
+const cloudTaskDel=id=>db&&cw(()=>db.doc(P+'/t_'+id).delete());
+const TP={'срочная':'🔴','важная':'🟠','обычная':'⚪'};
+const nowLocal=ms=>{const d=new Date(Date.now()+(ms||0));return ds(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+const dueTxt=d=>d?d.slice(8,10)+'.'+d.slice(5,7)+' '+d.slice(11,16):'без срока';
+const isOver=t=>!t.done&&t.due&&new Date(t.due).getTime()<=Date.now();
+const overTxt=due=>{const h=Math.floor((Date.now()-new Date(due).getTime())/36e5);return h<1?'просрочено меньше часа':h<48?'просрочено на '+h+' ч':'просрочено на '+Math.floor(h/24)+' дн.'};
+let tEdit=null;
+function resetT(){tEdit=null;['t_title','t_due'].forEach(i=>$(i).value='');$('t_prio').value='обычная';$('tAdd').textContent='Добавить';$('tCancel').style.display='none';$('tTitle').textContent='Добавить дело'}
+function upd(t){save();cloudTask(t);renderAll()}
+$('tAdd').onclick=()=>{const title=$('t_title').value.trim();if(!title){toast('Напишите, что нужно сделать');return}
+  const v={title,due:$('t_due').value,prio:$('t_prio').value};
+  let t=tEdit&&S.tasks.find(x=>x.id===tEdit);if(t)Object.assign(t,v);else{t={id:Date.now(),done:false,...v};S.tasks.push(t)}
+  resetT();upd(t);toast('Сохранено');assessTask(t)};
+$('tCancel').onclick=resetT;
+function taskRow(t){const r=el('div','it'),l=el('div'),rt=el('div','r');
+  const nm=el('div','nm',(TP[t.prio]||'')+' '+t.title);if(t.done)nm.style.textDecoration='line-through';l.appendChild(nm);
+  const over=isOver(t);l.appendChild(el('div',over?'meta bad':'meta',t.done?'Выполнено':dueTxt(t.due)+(over?' · '+overTxt(t.due):'')+' · '+t.prio));
+  if(!t.done)l.appendChild(el('div','meta mid','⚠️ Если отложить: '+(t.risk||localRisk(t))));
+  const b=(x,f)=>{const e=el('button','ed',x);e.onclick=f;rt.appendChild(e);rt.appendChild(document.createElement('br'));return e};
+  b(t.done?'↩ Вернуть':'✓ Сделано',()=>{t.done=!t.done;upd(t)});
+  if(!t.done)b('✎ Изменить',()=>{tEdit=t.id;$('t_title').value=t.title;$('t_due').value=t.due||'';$('t_prio').value=t.prio;$('tAdd').textContent='Сохранить';$('tCancel').style.display='';$('tTitle').textContent='Редактировать дело';window.scrollTo(0,0)});
+  const d=b('× Удалить',()=>{if(!d.dataset.a){d.dataset.a='1';d.textContent='Точно?';return}S.tasks=S.tasks.filter(x=>x.id!==t.id);save();cloudTaskDel(t.id);renderAll()});
+  r.appendChild(l);r.appendChild(rt);return r}
+function renderTasks(){
+  const open=S.tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')),done=S.tasks.filter(t=>t.done).slice(-8).reverse();
+  const ov=open.filter(isOver).length,td=open.filter(t=>t.due&&t.due.slice(0,10)===today()).length;
+  $('tSum').textContent=S.tasks.length?'Открыто: '+open.length+' · просрочено: '+ov+' · на сегодня: '+td:'';
+  const L=$('tList');L.innerHTML='';
+  if(!S.tasks.length)L.appendChild(el('div','empty','Список пуст. Запишите первое дело выше 👆'));
+  open.forEach(t=>L.appendChild(taskRow(t)));
+  if(done.length){L.appendChild(el('div','meta','Недавно выполнено'));done.forEach(t=>L.appendChild(taskRow(t)))}
+}
+function renderRemind(){const box=$('remind');box.innerHTML='';
+  const L=S.tasks.filter(t=>!t.done&&t.due&&new Date(t.due).getTime()<=Date.now()+36e5).sort((a,b)=>a.due.localeCompare(b.due));
+  L.slice(0,3).forEach(t=>{const c=el('div','card rem');c.appendChild(el('div','nm','⏰ '+t.title));const o=isOver(t);
+    c.appendChild(el('div',o?'meta bad':'meta',o?overTxt(t.due):'скоро: '+dueTxt(t.due)));
+    c.appendChild(el('div','meta mid','Если отложить: '+(t.risk||localRisk(t))));
+    const row=el('div','row');row.style.marginTop='8px';
+    const a=el('button','btn','✓ Сделано');a.onclick=()=>{t.done=true;upd(t)};
+    const z=el('button','btn sec','+1 час');z.onclick=()=>{t.due=nowLocal(36e5);upd(t)};
+    row.appendChild(a);row.appendChild(z);c.appendChild(row);box.appendChild(c)});
+  if(L.length>3)box.appendChild(el('div','meta','…и ещё дел с горящим сроком: '+(L.length-3)))}
+setInterval(renderRemind,30000);
+function showLazy(r){const o=$('lazyOut');o.innerHTML='';
+  (r.consequences||[]).forEach(x=>o.appendChild(el('p','bad','❗ '+x)));
+  if(r.snowball)o.appendChild(el('p',null,'📈 '+r.snowball));
+  if(r.rest)o.appendChild(el('p',null,'😴 '+r.rest));
+  if(r.first_step){const p=el('p','good','👉 Прямо сейчас (5 минут): '+r.first_step);p.style.fontWeight='600';o.appendChild(p)}}
+function localLazy(open,over){
+  if(!open.length)return{first_step:'Запишите хотя бы одно маленькое дело на сегодня и сделайте его.'};
+  const f=[...open].sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))[0];
+  return{consequences:['Открытых дел: '+open.length+(over.length?', из них просрочено: '+over.length:'')+'. Они не исчезнут, а переедут на завтра.'],
+    snowball:'Если отложить всё, завтра вы получите эти же '+open.length+' дел плюс новые, и часть из них станет срочной.',
+    rest:'Отдых по плану полезен. Отдых вместо дел, которые висят над головой, не восстанавливает силы, а копит тревогу.',
+    first_step:'таймер на 5 минут и первое дело: «'+f.title+'».'}}
+$('lazy').onclick=async()=>{
+  const open=S.tasks.filter(t=>!t.done),over=open.filter(isOver);
+  if(!sample){try{sample=await claude.use('sample')}catch(e){}}
+  if(!sample||!open.length){showLazy(localLazy(open,over));return}
+  const b=$('lazy');b.disabled=true;b.textContent='Думаю…';
+  const data=open.slice(0,30).map(t=>({дело:t.title,срок:t.due||null,важность:t.prio,просрочено:isOver(t)}));
+  const prompt='Ты — прямолинейный коуч по продуктивности. Человеку лень делать дела. Сейчас: '+nowLocal()+'. Ниже его открытые дела (JSON). Честно и конкретно, без оскорблений и без стыдения (критикуй откладывание, а не человека), объясни: чем обернётся отказ делать эти дела (реальные последствия по самым важным), как задачи копятся (сколько навалится завтра и через неделю), и почему отдых без плана превращается в избегание. Признай, что плановый отдых это нормально. Дай ОДИН первый шаг на 5 минут, который можно сделать прямо сейчас. Пиши по-русски, коротко. Верни ТОЛЬКО JSON без markdown: {"consequences":["...","..."],"snowball":"...","rest":"...","first_step":"..."}. Дела: '+JSON.stringify(data);
+  try{showLazy(await sample.json(prompt,{cache:false}))}catch(e){toast('ИИ не ответил, показываю простой разбор');showLazy(localLazy(open,over))}
+  b.disabled=false;b.textContent='Мне лень, что будет?'};
+
+/* ===== task risk (computed by the app) ===== */
+function localRisk(t){const n=S.tasks.filter(x=>!x.done&&x.id!==t.id).length,o=isOver(t);
+  const b={'срочная':'сорвёте срочное дело: высокий риск штрафов, потери доверия или упущенной возможности','важная':'важное дело сдвинет остальные планы и подорожает по времени','обычная':'мелкое дело превратится в висящий долг и будет отнимать внимание'}[t.prio]||'дело придётся делать позже';
+  return b+(o?'; '+overTxt(t.due):'')+(n?'. Вместе с ещё '+n+' открытыми делами нагрузка завтра вырастет':'')+'.'}
+async function assessTask(t){if(!sample||S.eco)return;try{const r=await sample('Опиши в 1-2 предложениях конкретные честные последствия, если человек отложит это дело. Без запугивания и оскорблений, по-русски. Дело: '+t.title+'; срок: '+(t.due||'нет')+'; важность: '+t.prio+'. Ответь только текстом.',{cache:false});if(r&&r.text){t.risk=r.text.trim().slice(0,300);upd(t)}}catch(e){}}
+
+/* ===== profile / body / gym / food ===== */
+const gcl=(pre,o)=>db&&cw(()=>db.doc(P+'/'+pre+o.id).set(o));
+const gdl=(pre,id)=>db&&cw(()=>db.doc(P+'/'+pre+id).delete());
+let prT;const cloudProf=()=>{if(!db)return;clearTimeout(prT);prT=setTimeout(()=>cw(()=>db.doc(P+'/profile').set({...S.prof})),700)};
+const num=id=>parseFloat($(id).value);
+const days=(a,b)=>(new Date(b)-new Date(a))/864e5;
+const PF=[['p_h','h'],['p_age','age'],['p_sex','sex'],['p_act','act'],['p_goal','goal'],['p_days','days']];
+function fillProf(){PF.forEach(([i,k])=>{if(document.activeElement!==$(i))$(i).value=S.prof[k]==null?'':S.prof[k]})}
+PF.forEach(([i,k])=>$(i).oninput=()=>{S.prof[k]=$(i).value;save();cloudProf();renderAll()});
+function lastW(){return [...S.body].sort((a,b)=>a.date.localeCompare(b.date)).pop()}
+function tiles(box,arr){box.innerHTML='';arr.forEach(([a,b])=>{const t=el('div','tile');t.appendChild(el('span','muted',a));t.appendChild(el('b',null,String(b)));box.appendChild(t)})}
+function bars(vals,labels,base){const mx=Math.max(...vals,1),mn=base?Math.min(...vals):0,rg=Math.max(mx-mn,1e-9),ch=el('div','chart');
+  vals.forEach((v,i)=>{const c=el('div','col');c.appendChild(el('div','n',v?String(Math.round(v*10)/10):''));const b=el('div','b');b.style.height=(v?(base?20+(v-mn)/rg*90:v/mx*110):0)+'px';c.appendChild(b);c.appendChild(el('div','x',labels[i]));ch.appendChild(c)});return ch}
+function hbars(box,o){const t=Math.max(...Object.values(o),1);Object.entries(o).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{const r=el('div','bar');r.appendChild(el('div','l',k));const tr=el('div','t'),f=document.createElement('i');f.style.width=(v/t*100)+'%';tr.appendChild(f);r.appendChild(tr);r.appendChild(el('div','v',String(v)));box.appendChild(r)})}
+const delBtn=(f)=>{const d=el('button','ed','× Удалить');d.onclick=()=>{if(!d.dataset.a){d.dataset.a='1';d.textContent='Точно?';return}f()};return d};
+
+/* gym */
+const GR=[['Пресс',/пресс|скруч|планк|подъ[её]м ног/i],['Ноги',/присед|жим ног|выпад|ног|икр|румын|ягодич|мост/i],['Спина',/тяг|подтяг|гребл|спин|шраг/i],['Грудь',/жим леж|жим гантел|отжим|разводк|груд|брус/i],['Плечи',/плеч|махи|жим стоя|жим сидя|арнольд|армейск/i],['Руки',/бицепс|трицепс|молот|сгибан|разгибан|француз/i]];
+const grp=n=>(GR.find(([,r])=>r.test(n))||['Другое'])[0];
+$('g_date').value=today();
+$('gAdd').onclick=()=>{const ex=$('g_ex').value.trim(),sets=num('g_sets'),reps=num('g_reps'),w=num('g_w')||0;
+  if(!ex||!(sets>0)||!(reps>0)){toast('Укажите упражнение, подходы и повторы');return}
+  const g={id:Date.now(),date:$('g_date').value||today(),ex:ex.slice(0,60),sets,reps,w};S.gym.push(g);save();gcl('g_',g);
+  ['g_ex','g_sets','g_reps','g_w'].forEach(i=>$(i).value='');renderAll();toast('Записано')};
+function renderGym(){
+  const dl=new Set(['Жим лёжа','Присед','Становая тяга','Жим стоя','Подтягивания','Тяга штанги в наклоне','Тяга верхнего блока','Жим гантелей','Жим ногами','Выпады','Румынская тяга','Отжимания на брусьях','Подъём на бицепс','Французский жим','Скручивания']);S.gym.forEach(g=>dl.add(g.ex));
+  $('exl').innerHTML='';dl.forEach(x=>{const o=document.createElement('option');o.value=x;$('exl').appendChild(o)});
+  const d7=ds(new Date(Date.now()-6*864e5)),r7=S.gym.filter(g=>g.date>=d7);
+  tiles($('gTiles'),[['Тренировок за 7 дней',new Set(r7.map(g=>g.date)).size],['Подходов',r7.reduce((s,g)=>s+g.sets,0)],['Объём, кг',Math.round(r7.reduce((s,g)=>s+g.sets*g.reps*g.w,0)).toLocaleString('ru-RU')]]);
+  const vals=[],labs=[];for(let k=7;k>=0;k--){const d=new Date();d.setDate(d.getDate()-7*k);const w=weekStart(ds(d));vals.push(S.gym.filter(g=>weekStart(g.date)===w).reduce((s,g)=>s+g.sets*g.reps*g.w,0));labs.push(w.slice(8,10)+'.'+w.slice(5,7))}
+  const C=$('gChart');C.innerHTML='';C.appendChild(el('div','meta','Объём по неделям (подходы × повторы × вес)'));C.appendChild(bars(vals,labs));
+  const d28=ds(new Date(Date.now()-27*864e5)),s28=S.gym.filter(g=>g.date>=d28),gr={};s28.forEach(g=>gr[grp(g.ex)]=(gr[grp(g.ex)]||0)+g.sets);
+  const G=$('gGroups');G.innerHTML='';G.appendChild(el('div','meta','Подходов по группам мышц за 28 дней'));
+  if(Object.keys(gr).length)hbars(G,gr);else G.appendChild(el('div','empty','Пока нет записей'));
+  const tips=[],sess=new Set(s28.map(g=>g.date)).size/4,tot=Object.values(gr).reduce((a,b)=>a+b,0);
+  if(S.gym.length){if(sess<2.5)tips.push('Тренировок в среднем '+sess.toFixed(1)+' в неделю. Для набора массы хватит 3–4, главное регулярность.');
+    if(tot&&(gr['Ноги']||0)/tot<0.2)tips.push('Ноги получают меньше 20% подходов. Добавьте приседания или жим ногами: это самая крупная группа мышц.');
+    if(tot&&(gr['Спина']||0)<(gr['Грудь']||0)*0.7)tips.push('Спины заметно меньше, чем груди. Добавьте тяги: это защищает плечи и осанку.')}
+  const byEx={};S.gym.forEach(g=>{if(g.w)(byEx[g.ex]=byEx[g.ex]||[]).push(g)});
+  Object.entries(byEx).filter(([,a])=>new Set(a.map(x=>x.date)).size>=2).slice(0,4).forEach(([k,a])=>{a.sort((x,y)=>x.date.localeCompare(y.date));const f=a[0],l=a[a.length-1];tips.push('Прогресс, '+k+': '+f.w+' → '+l.w+' кг (расчётный максимум на 1 повтор '+Math.round(f.w*(1+f.reps/30))+' → '+Math.round(l.w*(1+l.reps/30))+' кг)')});
+  tips.forEach(t=>{const p=el('p','meta','💡 '+t);G.appendChild(p)});
+  const J=$('gList');J.innerHTML='';const by={};S.gym.forEach(g=>(by[g.date]=by[g.date]||[]).push(g));
+  Object.keys(by).sort().reverse().slice(0,30).forEach(dt=>{J.appendChild(el('div','nm',dmy(dt)));by[dt].forEach(g=>{const r=el('div','it'),l=el('div');l.appendChild(el('div',null,g.ex));
+    l.appendChild(el('div','meta',g.sets+' × '+g.reps+(g.w?' × '+g.w+' кг':' (свой вес)')+' · '+grp(g.ex)));
+    r.appendChild(l);r.appendChild(delBtn(()=>{S.gym=S.gym.filter(x=>x.id!==g.id);save();gdl('g_',g.id);renderAll()}));J.appendChild(r)})});
+  if(!S.gym.length)J.appendChild(el('div','empty','Журнал пуст'));
+}
+
+/* body */
+$('b_date').value=today();
+$('bAdd').onclick=()=>{const w=num('b_w');if(!(w>20&&w<400)){toast('Укажите вес в кг');return}
+  const b={id:Date.now(),date:$('b_date').value||today(),w,waist:num('b_waist')||0};S.body.push(b);save();gcl('b_',b);$('b_w').value='';$('b_waist').value='';renderAll();toast('Записано')};
+function targets(){const L=lastW(),h=parseFloat(S.prof.h),a=parseFloat(S.prof.age);if(!L||!(h>0)||!(a>0))return null;
+  const bmr=10*L.w+6.25*h-5*a+(S.prof.sex==='ж'?-161:5),tdee=bmr*parseFloat(S.prof.act||1.55),g=S.prof.goal;
+  const kcal=g==='набор массы'?tdee+400:g==='похудение'?Math.max(tdee-400,bmr):tdee;
+  const pr=Math.round(L.w*(g==='похудение'?2:1.8)),fat=Math.round(L.w*0.9),carb=Math.max(0,Math.round((kcal-pr*4-fat*9)/4));
+  return{w:L.w,bmr:Math.round(bmr),tdee:Math.round(tdee),kcal:Math.round(kcal),pr,fat,carb}}
+function trend(){const s=[...S.body].sort((a,b)=>a.date.localeCompare(b.date)),l=s[s.length-1];if(!l)return null;
+  const f=s.find(x=>x!==l&&days(x.date,l.date)<=35);if(!f)return null;const d=days(f.date,l.date);if(d<7)return null;return{d:Math.round(d),dw:l.w-f.w,pw:(l.w-f.w)/d*7}}
+function renderBody(){const L=lastW(),tr=trend(),h=parseFloat(S.prof.h),t=[['Вес',L?L.w+' кг':'—']];
+  if(L&&h>0){const b=L.w/((h/100)**2);t.push(['ИМТ',b.toFixed(1)+' ('+(b<18.5?'ниже нормы':b<25?'норма':b<30?'выше нормы':'ожирение')+')'])}
+  if(tr)t.push(['За '+tr.d+' дн.',(tr.dw>0?'+':'')+tr.dw.toFixed(1)+' кг']);
+  const wl=S.body.filter(b=>b.waist).sort((a,b)=>a.date.localeCompare(b.date)).pop();if(wl)t.push(['Талия',wl.waist+' см']);
+  tiles($('bTiles'),t);
+  const adv=$('bAdvice');adv.innerHTML='';
+  if(tr&&S.prof.goal==='набор массы'){const w=tr.pw;adv.appendChild(el('p',w<0.1?'mid':w>0.7?'bad':'good',w<0.1?'Масса почти не растёт ('+w.toFixed(2)+' кг/нед). Добавьте примерно 200 ккал в день и понаблюдайте ещё 2 недели.':w>0.7?'Набор слишком быстрый ('+w.toFixed(2)+' кг/нед): часть уйдёт в жир. Уберите примерно 200 ккал.':'Темп набора в норме: '+w.toFixed(2)+' кг/нед.'))}
+  else if(tr&&S.prof.goal==='похудение'){const w=tr.pw;adv.appendChild(el('p',w>-0.2?'mid':w<-1?'bad':'good',w>-0.2?'Вес почти не снижается ('+w.toFixed(2)+' кг/нед).':w<-1?'Вес падает слишком быстро ('+w.toFixed(2)+' кг/нед): риск потери мышц. Увеличьте калории.':'Темп снижения в норме: '+w.toFixed(2)+' кг/нед.'))}
+  const s=[...S.body].sort((a,b)=>a.date.localeCompare(b.date)).slice(-12),C=$('bChart');C.innerHTML='';
+  if(s.length>1)C.appendChild(bars(s.map(x=>x.w),s.map(x=>x.date.slice(8,10)+'.'+x.date.slice(5,7)),true));
+  const B=$('bList');B.innerHTML='';[...S.body].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).forEach(b=>{const r=el('div','it');r.appendChild(el('div',null,dmy(b.date)+' · '+b.w+' кг'+(b.waist?' · талия '+b.waist+' см':'')));
+    r.appendChild(delBtn(()=>{S.body=S.body.filter(x=>x.id!==b.id);save();gdl('b_',b.id);renderAll()}));B.appendChild(r)});
+}
+
+/* food */
+const JUNK=/макдон|mcdonald|kfc|бургер|пицц|доставк|чипс|кола|coca|pepsi|энергет|конфет|шоколад|сладк|печень|мороженое|фастфуд/i;
+const PROT=/кур|яйц|творог|рыб|говяд|свинин|мяс|тунец|лосос|молок|йогурт|кефир|сыр|чечевиц|фасол|индейк|протеин/i;
+const foods=()=>{const d=ds(new Date(Date.now()-29*864e5));return S.items.filter(i=>i.cat==='Еда и кафе'&&i.date>=d)};
+function renderFood(){const T=targets(),box=$('fTargets');box.innerHTML='';
+  if(!T)box.appendChild(el('div','empty','Укажите рост и возраст и запишите вес во вкладке «Форма», чтобы рассчитать норму.'));
+  else{const w=el('div','tiles');box.appendChild(w);tiles(w,[['Калорий в день',T.kcal],['Белок, г',T.pr],['Жиры, г',T.fat],['Углеводы, г',T.carb]]);
+    box.appendChild(el('div','meta','Расчёт: обмен покоя ≈ '+T.bmr+' ккал, с учётом активности ≈ '+T.tdee+' ккал. Цель: '+S.prof.goal+'. Это оценка по формуле, а не медицинская рекомендация.'))}
+  const gd=$('fGuide');gd.innerHTML='';
+  ['Профицит калорий 300–500 в день даёт набор 0.25–0.5 кг в неделю. Быстрее значит больше жира.','Белок 1.6–2.2 г на кг веса, разделите на 3–5 приёмов по 25–40 г.','Углеводы основа энергии для тренировок: рис, гречка, овсянка, картофель, макароны, хлеб, фрукты.','Жиры 0.8–1 г на кг: яйца, орехи, оливковое масло, жирная рыба. Не опускайтесь ниже.','Недорогие источники белка: яйца, куриное бедро и грудка, творог, кефир, консервированный тунец, чечевица, фасоль, молоко.','Если сложно съесть норму: добавляйте молоко, арахисовую пасту, орехи, сухофрукты, масло в готовые блюда, смузи.','Сон 7–9 часов, достаточно воды. Креатин моногидрат 3–5 г в день самая изученная добавка (обсудите с врачом, если есть проблемы с почками).','Взвешивайтесь утром 1–2 раза в неделю и смотрите на среднее за 2–3 недели. Нет роста: +200 ккал.'].forEach(x=>gd.appendChild(el('p',null,'• '+x)));
+  const fd=foods(),fb=$('fBuys');fb.innerHTML='';
+  if(!fd.length){fb.appendChild(el('div','empty','За 30 дней нет покупок в категории «Еда и кафе». Записывайте продукты во вкладке «Покупки» (например «курица 1 кг», «рис»), чтобы получать советы.'));return}
+  const tot=fd.reduce((s,i)=>s+i.amount,0),pr=fd.filter(i=>PROT.test(i.name)),jk=fd.filter(i=>JUNK.test(i.name));
+  fb.appendChild(el('div','meta','Всего '+fmt(tot)+' · покупок: '+fd.length+' · белковых продуктов: '+pr.length+' · фастфуд и сладкое: '+jk.length+' ('+fmt(jk.reduce((s,i)=>s+i.amount,0))+')'));
+  [...fd].sort((a,b)=>b.amount-a.amount).slice(0,8).forEach(i=>{const r=el('div','it');r.appendChild(el('div',null,i.name+(JUNK.test(i.name)?' ⚠️':PROT.test(i.name)?' 💪':'')));r.appendChild(el('div','amt',fmt(i.amount)));fb.appendChild(r)});
+  if(S.prof.goal==='набор массы'&&!pr.length)fb.appendChild(el('p','mid','Среди покупок нет явных источников белка. Для набора массы добавьте яйца, курицу, творог, рыбу или бобовые.'));
+}
+
+/* AI helpers */
+const sec=(o,h,x,c)=>{if(!x||(Array.isArray(x)&&!x.length))return;o.appendChild(el('p','nm',h));(Array.isArray(x)?x:[x]).forEach(v=>o.appendChild(el('p',c||null,'• '+(typeof v==='string'?v:Object.values(v).join(' — ')))))};
+const drawer=m=>(r,o)=>m.forEach(([k,h])=>sec(o,h,r[k]));
+async function askAI(btn,label,prompt,out,draw){
+  if(!sample){try{sample=await claude.use('sample')}catch(e){}}
+  if(!sample){toast('ИИ недоступен в этом окне. Откройте страницу в Claude.');return}
+  btn.disabled=true;btn.textContent='Анализирую…';
+  try{const r=await sample.json(prompt,{cache:false});out.innerHTML='';draw(r,out)}
+  catch(e){toast(e&&e.code==='not_granted'?'Нужно разрешить доступ к ИИ':'Не удалось получить ответ, попробуйте ещё раз')}
+  btn.disabled=false;btn.textContent=label}
+const ctx=()=>'Профиль: '+JSON.stringify(S.prof)+'. Вес тела (последние записи): '+JSON.stringify([...S.body].sort((a,b)=>a.date.localeCompare(b.date)).slice(-15).map(b=>({дата:b.date,кг:b.w,талия:b.waist||null})))+'. Норма: '+JSON.stringify(targets())+'. Динамика: '+JSON.stringify(trend())+'.';
+$('gAI').onclick=()=>{if(!S.gym.length){toast('Сначала запишите тренировки');return}
+  const data=[...S.gym].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,80).map(g=>({дата:g.date,упражнение:g.ex,подходы:g.sets,повторы:g.reps,вес_кг:g.w}));
+  askAI($('gAI'),'🏋️ Анализ тренировок с ИИ','Ты — опытный тренер по силовым тренировкам. Проанализируй тренировки пользователя (JSON, вес 0 = собственный вес). '+ctx()+' Оцени объём, частоту, баланс групп мышц и прогрессию нагрузки. Дай конкретные советы по технике названных упражнений, по прогрессии и план на следующую неделю. Прямо и по делу. Если данных мало, скажи об этом. Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"summary":"...","issues":["..."],"technique":["упражнение: совет"],"progression":["..."],"next_week":"..."}. Тренировки: '+JSON.stringify(data),
+  $('gAIout'),drawer([['summary','Итог'],['issues','Что не так'],['technique','Техника и советы'],['progression','Как прогрессировать'],['next_week','План на неделю']]))};
+$('bAI').onclick=()=>{if(!S.body.length){toast('Сначала запишите вес');return}
+  askAI($('bAI'),'📊 Анализ формы с ИИ','Ты — спортивный консультант. Проанализируй форму пользователя. '+ctx()+' Тренировок за 28 дней: '+new Set(S.gym.filter(g=>g.date>=ds(new Date(Date.now()-27*864e5))).map(g=>g.date)).size+'. Оцени динамику веса относительно цели, реалистичный темп, что поправить в питании и тренировках. Если цифры выглядят опасно (очень низкий ИМТ, резкая потеря веса), порекомендуй обратиться к врачу. Это не медицинская консультация. Пиши по-русски, конкретно. Верни ТОЛЬКО JSON без markdown: {"summary":"...","observations":["..."],"recommendations":["..."],"watch_out":["..."]}.',
+  $('bAIout'),drawer([['summary','Итог'],['observations','Наблюдения'],['recommendations','Что делать'],['watch_out','На что обратить внимание']]))};
+$('fAI').onclick=()=>{const fd=foods().map(i=>({дата:i.date,название:i.name,сумма:i.amount}));
+  askAI($('fAI'),'🍳 Что приготовить и что купить','Ты — диетолог-практик и повар. Цель пользователя и норма указаны ниже. '+ctx()+' Тренировок в неделю: '+(S.prof.days||'не указано')+'. Продукты и еда, которые он покупал за 30 дней, валюта '+S.cur+' (JSON): '+JSON.stringify(fd)+'. Задача: 1) оцени, насколько покупки соответствуют цели (белок, калории, лишнее); 2) предложи 3-4 блюда, которые можно приготовить ИЗ ТОГО, что он уже покупает (с ингредиентами и пользой); 3) что докупить недорого для выполнения нормы белка и калорий (учитывай его бюджет по суммам); 4) что заменить из невыгодных покупок. Если покупок еды нет, предложи базовый недорогой набор под цель. Это не медицинская рекомендация. Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"assessment":"...","cook":[{"title":"...","ingredients":"...","why":"..."}],"buy":[{"item":"...","why":"..."}],"swap":[{"from":"...","to":"..."}],"tips":["..."]}.',
+  $('fAIout'),drawer([['assessment','Оценка покупок'],['cook','Что приготовить'],['buy','Что докупить'],['swap','Чем заменить'],['tips','Советы']]))};
+fillProf();
