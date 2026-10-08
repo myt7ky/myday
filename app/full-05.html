@@ -1,0 +1,59 @@
+  try{sample=await claude.use('sample')}catch(e){}
+  try{dl=await claude.use('downloads')}catch(e){}
+  try{const d=await claude.use('db'),u=await claude.use('user'),id=u&&await u.id();if(d&&id){db=d;P='data/users/'+id;connect()}}catch(e){db=null}
+  setSync();renderAll()})();
+show();
+
+/* ===== PWA helpers: theme + global search ===== */
+(function(){
+  const THEME_KEY='myday-theme';
+  function applyTheme(v){
+    const t=v==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v;
+    document.documentElement.dataset.theme=t;
+    const sel=document.getElementById('myThemeSelect'); if(sel)sel.value=v;
+  }
+  let theme='auto'; try{theme=localStorage.getItem(THEME_KEY)||'auto'}catch(e){}
+  const dataSec=document.getElementById('t-data');
+  if(dataSec){
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<h2>Внешний вид</h2><p class="muted" style="margin-top:0">Настройки интерфейса спрятаны здесь, чтобы навигация оставалась спокойной.</p><label>Тема<select id="myThemeSelect"><option value="auto">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>';
+    dataSec.insertBefore(c, dataSec.lastElementChild);
+    document.getElementById('myThemeSelect').onchange=function(){theme=this.value;try{localStorage.setItem(THEME_KEY,theme)}catch(e){}applyTheme(theme)};
+  }
+  applyTheme(theme);
+  const head=document.querySelector('.hin');
+  if(head){
+    const b=document.createElement('button'); b.id='my-search-launch'; b.type='button'; b.textContent='⌕  Поиск  (Ctrl/⌘ K)'; head.appendChild(b);
+    b.onclick=()=>openSearch();
+  }
+  const ov=document.createElement('div'); ov.id='my-search-overlay'; ov.innerHTML='<div id="my-search-dialog"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><strong>Поиск по приложению</strong><button id="mySearchClose" class="ed" style="font-size:16px">✕</button></div><input id="my-search-input" placeholder="Покупка, дело, упражнение, продукт…" autocomplete="off"><div id="my-search-results" style="max-height:58vh;overflow:auto;margin-top:10px"><div class="empty">Начните вводить запрос.</div></div></div>';
+  document.body.appendChild(ov);
+  document.getElementById('mySearchClose').onclick=closeSearch;
+  ov.onclick=e=>{if(e.target===ov)closeSearch()};
+  const inp=document.getElementById('my-search-input');
+  function items(){
+    const out=[];
+    (S.items||[]).forEach(x=>out.push({tab:'buys',type:'Покупка',title:x.name,meta:(x.date||'')+' · '+(x.amount||0)+' '+S.cur}));
+    (S.tasks||[]).forEach(x=>out.push({tab:'tasks',type:'Дело',title:x.title,meta:x.done?'выполнено':(x.due||'без срока')}));
+    (S.gym||[]).forEach(x=>out.push({tab:'gym',type:'Тренировка',title:x.ex,meta:(x.date||'')+' · '+x.sets+'×'+x.reps+(x.w?' · '+x.w+' кг':'')}));
+    (S.body||[]).forEach(x=>out.push({tab:'body',type:'Вес',title:String(x.w)+' кг',meta:(x.date||'')+(x.waist?' · талия '+x.waist+' см':'')}));
+    (S.meals||[]).forEach(x=>out.push({tab:'food',type:'Питание',title:x.text,meta:(x.date||'')+' · '+(x.kcal||0)+' ккал'}));
+    (S.foodDb||[]).forEach(x=>out.push({tab:'food',type:'Продукт',title:x.n,meta:(x.k||0)+' ккал на 100 г'}));
+    return out;
+  }
+  function renderSearch(q){
+    const box=document.getElementById('my-search-results'); q=q.trim().toLowerCase(); if(!q){box.innerHTML='<div class="empty">Начните вводить запрос.</div>';return}
+    const hits=items().filter(x=>(x.title+' '+x.meta+' '+x.type).toLowerCase().includes(q)).slice(0,30);
+    box.innerHTML=hits.length?'':'<div class="empty">Ничего не найдено.</div>';
+    hits.forEach(x=>{const d=document.createElement('div');d.className='my-result';d.innerHTML='<strong>'+escapeHtml(x.title)+'</strong><span>'+escapeHtml(x.type+' · '+x.meta)+'</span>';d.onclick=()=>{tab=x.tab;show();closeSearch()};box.appendChild(d)})
+  }
+  inp.oninput=()=>renderSearch(inp.value);
+  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function openSearch(){ov.classList.add('on');inp.value='';renderSearch('');setTimeout(()=>inp.focus(),0)}
+  function closeSearch(){ov.classList.remove('on')}
+  window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()} if(e.key==='Escape')closeSearch()});
+})();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
