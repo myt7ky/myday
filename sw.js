@@ -1,4 +1,4 @@
-const CACHE='myday-pwa-v16';
+const CACHE='myday-pwa-v17';
 const CORE=['./','./index.html','./manifest.webmanifest','./icon.svg','./app/full-01.html','./app/full-02.html','./app/full-03.html','./app/full-04.html','./app/full-05.html'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
