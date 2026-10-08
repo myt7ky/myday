@@ -1673,4 +1673,138 @@ document.addEventListener('click',e=>{if(innerWidth<=920&&document.body.classLis
  const titleMap={ov:'Сегодня',analytics:'Аналитика',forecast:'Прогноз',goals:'Цели',streaks:'Серии',buys:'Покупки',ai:'Анализ трат',budget:'Бюджет',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',sleep:'Сон',data:'Данные'};const obs=new MutationObserver(()=>{const t=titleMap[typeof tab!=='undefined'?tab:'ov'];if(t)document.getElementById('pageTitle').textContent=t});obs.observe(document.getElementById('nav'),{childList:true,subtree:true,attributes:true});
 syncMobileNav();
 })();
-</script></body></html>
+</script><script>
+/* ===== v30 stability layer: independent goals + ranked search ===== */
+(function(){
+  'use strict';
+  const GOAL_KEY='spend-v1';
+  const safeState=()=>{
+    try{
+      const x=JSON.parse(localStorage.getItem(GOAL_KEY)||'{}');
+      if(!Array.isArray(x.goals))x.goals=[];
+      return x;
+    }catch(e){return {goals:[]}}
+  };
+  const persistState=s=>{
+    try{localStorage.setItem(GOAL_KEY,JSON.stringify(s))}catch(e){}
+  };
+  function goalFallback(){
+    const btn=document.getElementById('goalAdd');
+    if(!btn||btn.dataset.v30Bound)return;
+    btn.dataset.v30Bound='1';
+    btn.addEventListener('click',function(e){
+      e.preventDefault();e.stopImmediatePropagation();
+      try{
+        const state=safeState(),metric=(document.getElementById('goalMetric')||{}).value||'workouts_week';
+        const titleEl=document.getElementById('goalTitle'),targetEl=document.getElementById('goalTarget');
+        const rawTitle=titleEl?String(titleEl.value||'').trim():'';
+        const target=targetEl?Number(targetEl.value):0;
+        if(!(target>0)){ if(typeof toast==='function')toast('Укажите целевое значение'); return; }
+        const names={workouts_week:'Тренировки за неделю',tasks_week:'Выполненные дела за неделю',sleep7_week:'Ночей 7+ часов за неделю',meal_days_week:'Дней с записью питания',spend_month_max:'Лимит расходов за месяц'};
+        if(state.goals.length>=10){if(typeof toast==='function')toast('Максимум 10 целей');return}
+        state.goals.push({id:Date.now(),metric,title:rawTitle||names[metric]||'Моя цель',target});
+        persistState(state);
+        try{
+          if(typeof S!=='undefined'){
+            S.goals=state.goals;
+            S.goalsDirty=true;
+            if(typeof save==='function')save();
+            if(typeof cloudSettings==='function')cloudSettings(true);
+          }
+        }catch(err){}
+        if(titleEl)titleEl.value='';
+        if(typeof renderGoals==='function')renderGoals();
+        if(typeof renderForecast==='function')renderForecast();
+        if(typeof toast==='function')toast('Цель добавлена');
+      }catch(err){
+        console.error(err);
+        if(typeof toast==='function')toast('Не удалось добавить цель');
+      }
+    },true);
+  }
+
+  const SEARCH_MAP=[
+    {id:'ov',title:'Сегодня',aliases:['главная','домой','день','мой день']},
+    {id:'analytics',title:'Аналитика',aliases:['статистика','анализ','данные','показатели']},
+    {id:'forecast',title:'Прогноз',aliases:['прогнозы','будущее','расходы вперёд']},
+    {id:'goals',title:'Цели',aliases:['цель','задачи цели','планы','результаты']},
+    {id:'streaks',title:'Серии',aliases:['серия','стрик','привычки','дни подряд']},
+    {id:'buys',title:'Покупки',aliases:['траты','расходы','покупка','деньги']},
+    {id:'ai',title:'Анализ трат',aliases:['анализ покупок','оценка трат','разумность покупки']},
+    {id:'budget',title:'Бюджет',aliases:['лимит','бюджеты','категории расходов']},
+    {id:'tasks',title:'Дела',aliases:['задачи','дело','список дел','работа']},
+    {id:'gym',title:'Зал',aliases:['тренировки','спорт','упражнения']},
+    {id:'body',title:'Форма',aliases:['вес','тело','талия','имт','калории','макросы']},
+    {id:'food',title:'Питание',aliases:['еда','калории','бжу','белок','прием пищи']},
+    {id:'sleep',title:'Сон',aliases:['сон','спать','режим','восстановление']},
+    {id:'data',title:'Данные',aliases:['настройки','настройка','тема','темная тема','экспорт','импорт','резервная копия','валюта']}
+  ];
+  const norm=s=>String(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]+/gi,' ').trim();
+  const words=q=>norm(q).split(/\s+/).filter(Boolean);
+  const score=(q,title,aliases,meta)=>{
+    const nq=norm(q),nt=norm(title),nm=norm(meta), all=[nt,...aliases.map(norm)];
+    let s=0;
+    if(nt===nq)s+=120;
+    if(nt.startsWith(nq))s+=90;
+    if(all.some(x=>x===nq))s+=100;
+    if(all.some(x=>x.startsWith(nq)))s+=70;
+    if(nt.includes(nq))s+=55;
+    const qs=words(q);
+    qs.forEach(w=>{if(nt===w)s+=45;else if(nt.includes(w))s+=24;else if(all.some(a=>a.includes(w)))s+=18;else if(nm.includes(w))s+=3});
+    return s;
+  };
+  function renderStableSearch(q){
+    const box=document.getElementById('searchResults'); if(!box)return;
+    q=String(q||'').trim();
+    if(!q){box.innerHTML='<div class="empty">Введите, что нужно найти: «сон», «настройки», «покупка», «цель».</div>';return}
+    const rows=[];
+    SEARCH_MAP.forEach(x=>{
+      const s=score(q,x.title,x.aliases,'раздел');
+      if(s>0)rows.push({s,type:'Раздел',title:x.title,meta:x.aliases.slice(0,2).join(' · '),tab:x.id});
+    });
+    const state=safeState();
+    (state.goals||[]).forEach(g=>{
+      const s=score(q,g.title||'', [g.metric||''], 'цель');
+      if(s>8)rows.push({s:s+35,type:'Цель',title:g.title||'Цель',meta:'Цель · '+(g.target||''),tab:'goals'});
+    });
+    (state.items||[]).forEach(i=>{
+      const title=i.name||'Покупка',meta=(i.cat||'')+' '+(i.amount||'');
+      const s=score(q,title,[],meta); if(s>8)rows.push({s,type:'Покупка',title,meta,tab:'buys'});
+    });
+    (state.tasks||[]).forEach(t=>{
+      const title=t.title||'Дело',meta=(t.prio||'')+' '+(t.done?'выполнено':'открыто');
+      const s=score(q,title,[],meta); if(s>8)rows.push({s,type:'Дело',title,meta,tab:'tasks'});
+    });
+    (state.gym||[]).forEach(g=>{
+      const title=g.ex||'Тренировка',meta=String(g.date||'');
+      const s=score(q,title,[],meta); if(s>8)rows.push({s,type:'Зал',title,meta,tab:'gym'});
+    });
+    (state.meals||[]).forEach(m=>{
+      const title=m.text||'Приём пищи',meta=String(m.date||'');
+      const s=score(q,title,[],meta); if(s>8)rows.push({s,type:'Питание',title,meta,tab:'food'});
+    });
+    (state.sleep||[]).forEach(slp=>{
+      const title='Сон '+String(slp.date||''),meta=(slp.bed||'')+' → '+(slp.wake||'');
+      const s=score(q,title,['сон'],meta); if(s>8)rows.push({s,type:'Сон',title,meta,tab:'sleep'});
+    });
+    const seen=new Set(),out=rows.sort((a,b)=>b.s-a.s).filter(x=>{const k=x.type+'|'+x.title;if(seen.has(k))return false;seen.add(k);return true}).slice(0,15);
+    if(!out.length){box.innerHTML='<div class="empty">Ничего подходящего не найдено.<br><span class="meta">Попробуйте одно точное слово: «настройки», «сон», «цели», «покупки».</span></div>';return}
+    box.innerHTML=out.map((r,i)=>'<button class="result" data-v30-search="'+i+'" style="display:block;width:100%;text-align:left"><strong>'+String(r.title).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))+'</strong><span>'+r.type+' · '+String(r.meta||'')+'</span></button>').join('');
+    box.querySelectorAll('[data-v30-search]').forEach(b=>b.onclick=()=>{
+      const r=out[Number(b.dataset.v30Search)];
+      try{tab=r.tab;show();}catch(e){}
+      document.getElementById('searchOverlay')?.classList.remove('on');
+    });
+  }
+  function bindStableSearch(){
+    const input=document.getElementById('globalSearch'); if(!input||input.dataset.v30Bound)return;
+    input.dataset.v30Bound='1';
+    input.addEventListener('input',e=>{e.stopImmediatePropagation();renderStableSearch(e.target.value)},true);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();}},true);
+    renderStableSearch(input.value);
+  }
+  function boot(){goalFallback();bindStableSearch();}
+  boot();
+  new MutationObserver(boot).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>\n</body></html>
