@@ -132,6 +132,7 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
     <p class="meta">Если подходы с разным весом, запишите их отдельными строками.</p>
     <button class="btn" id="gAdd">Добавить</button></div>
   <div class="card"><h2>Статистика</h2><div class="tiles" id="gTiles"></div><div id="gChart"></div><div id="gGroups" style="margin-top:12px"></div></div>
+  <div class="card"><h2>⚡ Готовность к тренировке</h2><div id="gReadiness" class="an"></div></div>
   <div class="card"><button class="btn" id="gAI">🏋️ Анализ тренировок с ИИ</button><div id="gAIout" class="an" style="margin-top:10px"></div></div>
   <div class="card"><h2>Журнал</h2><div id="gList"></div></div>
 </section>
@@ -656,7 +657,31 @@ $('gAdd').onclick=()=>{const ex=$('g_ex').value.trim(),sets=num('g_sets'),reps=n
   if(!ex||!(sets>0)||!(reps>0)){toast('Укажите упражнение, подходы и повторы');return}
   const g={id:Date.now(),date:$('g_date').value||today(),ex:ex.slice(0,60),sets,reps,w};S.gym.push(g);save();gcl('g_',g);
   ['g_ex','g_sets','g_reps','g_w'].forEach(i=>$(i).value='');renderAll();toast('Записано')};
+function sleepTrainingReadiness(){
+  const all=Array.isArray(S.sleep)?S.sleep.filter(x=>sleepDuration(x.bed,x.wake)>0).sort((a,b)=>b.date.localeCompare(a.date)):[];
+  if(!all.length)return{score:null,title:'Нет данных о сне',text:'Запишите хотя бы одну ночь сна — тогда приложение сможет оценить готовность к тренировке.',cls:'meta'};
+  const last=all[0],lastDur=sleepDuration(last.bed,last.wake),q=Number(last.quality)||0;
+  const s7=sleepStats(all.slice(0,7)); let score=100;
+  if(lastDur<360)score-=35; else if(lastDur<420)score-=15; else if(lastDur>600)score-=5;
+  if(q<3)score-=20; else if(q<4)score-=10;
+  if(s7.n>=3&&s7.avg<420)score-=15;
+  if(s7.n>=3&&s7.bedDev>60)score-=10;
+  score=Math.max(0,Math.min(100,score));
+  let title,text,cls;
+  if(score>=80){title='🟢 Хорошая готовность';text='Сон выглядит достаточным. Можно выполнять запланированную тренировку в обычном режиме.';cls='ok'}
+  else if(score>=60){title='🟠 Умеренная нагрузка';text='Восстановление не идеальное. Оставьте тренировку, но не идите сегодня в отказ и не увеличивайте веса.';cls='mid'}
+  else{title='🔴 Лучше восстановиться';text='Сегодня разумнее сделать лёгкую тренировку или отдых. Снизьте объём и интенсивность, особенно если чувствуете усталость.';cls='bad'}
+  return{score,title,text,cls,last,lastDur,q,s7};
+}
+function renderGymReadiness(){
+  const box=$('gReadiness');if(!box)return;const r=sleepTrainingReadiness();box.innerHTML='';
+  if(r.score==null){box.appendChild(el('p','meta',r.text));return}
+  box.appendChild(el('div','nm',r.title+' · '+r.score+'/100'));
+  box.appendChild(el('p',r.cls==='bad'?'bad':r.cls==='mid'?'mid':'meta',r.text));
+  box.appendChild(el('p','meta','Последняя ночь: '+sleepHM(r.lastDur)+' · качество '+r.q+'/5'+(r.s7.n>=3?' · среднее за 7 дней: '+sleepHM(r.s7.avg):'')));
+}
 function renderGym(){
+  renderGymReadiness();
   const dl=new Set(EXERCISES.map(x=>x[0]));S.gym.forEach(g=>dl.add(g.ex));
   $('exl').innerHTML='';dl.forEach(x=>{const o=document.createElement('option');o.value=x;$('exl').appendChild(o)});
   const d7=ds(new Date(Date.now()-6*864e5)),r7=S.gym.filter(g=>g.date>=d7);
