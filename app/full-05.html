@@ -1,59 +1,150 @@
+сметана|сметан|206|2.8|20|3.2|4|0
+сливочное масло|сливочное масл,масло сливочное,масл|748|0.5|82|0.8|3|0
+оливковое масло|оливков|884|0|100|0|6|0
+подсолнечное масло|подсолнечн,растительн|884|0|100|0|5|0
+гречка варёная|гречк,греча|110|4|1|21|9|0
+гречка сухая|гречка сухая,гречка сырая|340|12|3|62|9|0
+рис варёный|рис|130|2.7|0.3|28|6|0
+макароны варёные|макарон,паста,спагетти,лапша,вермишел|158|5.8|0.9|31|5|0
+овсяные хлопья (сухие)|овсянк,хлопья,геркулес,мюсли|370|13|7|62|9|0
+овсяная каша на воде|каша овсян,овсяная каша,овсянка на воде,овсянка на молоке|75|2.5|1.5|13|8|0
+картофель варёный|картофел,картошк|85|2|0.1|19|7|0
+картофель жареный|жареная картош,жареный картофель|190|3|9|25|4|0
+картофель фри|фри|312|3.4|15|41|2|0
+хлеб|хлеб,батон,булк,тост|265|9|3|49|4|30
+цельнозерновой хлеб|цельнозерн,ржаной|250|10|3.5|45|7|30
+банан|банан|89|1.1|0.3|23|8|120
+яблоко|яблок|52|0.3|0.2|14|9|180
+апельсин|апельсин,мандарин|47|0.9|0.1|12|9|150
+виноград|виноград|69|0.7|0.2|18|7|0
+ягоды|ягод,клубник,черник,малин|45|1|0.4|10|10|0
+помидор|помидор,томат|18|0.9|0.2|3.9|10|120
+огурец|огур|15|0.8|0.1|3|10|100
+морковь|морков|41|0.9|0.2|10|10|80
+капуста|капуст|27|1.8|0.1|6|10|0
+брокколи|брокколи|34|2.8|0.4|7|10|0
+салат овощной|салат|40|1.2|2.5|4|9|0
+авокадо|авокадо|160|2|15|9|8|150
+лук|лук|40|1.1|0.1|9|9|0
+чечевица варёная|чечевиц|116|9|0.4|20|10|0
+фасоль варёная|фасол|127|8.7|0.5|23|9|0
+нут варёный|нут|164|8.9|2.6|27|9|0
+арахисовая паста|арахисовая паста,арахисовое масло|590|25|50|20|6|0
+арахис|арахис|567|26|49|16|7|0
+миндаль|миндал|579|21|50|22|8|0
+грецкие орехи|грецк|654|15|65|14|8|0
+орехи (ассорти)|орех|600|18|54|16|8|0
+сухофрукты|курага,изюм,сухофрукт,финик|250|3|0.5|62|7|0
+шоколад|шоколад|535|7|30|59|2|0
+конфеты|конфет|450|3|15|75|1|0
+печенье|печень|450|6|18|68|2|0
+мороженое|мороженое|207|3.5|11|24|2|0
+пицца|пицц|266|11|10|33|3|100
+бургер|бургер,гамбургер,чизбургер|250|12|12|30|3|200
+шаурма|шаурм,шаверм|230|12|12|20|4|300
+чипсы|чипс|536|6.5|35|53|1|0
+кола и газировка|кола ,coca,pepsi,пепси,газировк|42|0|0|10.6|1|0
+сахар|сахар|387|0|0|100|1|0
+мёд|мёд,мед |304|0.3|0|82|4|0
+протеин (порошок)|протеин,изолят,гейнер|380|75|6|8|7|30
+протеиновый батончик|батончик|370|30|12|35|4|60
+кофе|кофе|2|0.3|0|0|8|0
+чай|чай ,чая|1|0|0|0.2|9|0
+сок|сок ,соки|45|0.7|0.2|10|5|0
+суп овощной|суп|40|1.5|1.5|5|8|0
+борщ|борщ|45|1.5|2|5|8|0
+майонез|майонез|627|0.5|67|3|1|0
+кетчуп|кетчуп|100|1.5|0.5|25|3|0
+пельмени и вареники|пельмен,вареник|230|11|10|25|4|0
+блины|блин,оладь|230|6|9|31|4|50
+сырники|сырник|220|13|11|18|6|60`;
+const rowOf=(o,my)=>({n:o.n,al:o.al||'',a:norm(o.n.replace(/\s*\(.*\)/,'')+','+(o.al||'')).split(',').filter(Boolean),k:+o.k,p:+o.p,f:+o.f,c:+o.c,s:+o.s||0,pc:+o.pc||0,my});
+const BUILTIN=RAW.split('\n').filter(Boolean).map(l=>{const [n,a,k,p,f,c,sc,pc]=l.split('|');return rowOf({n,al:a,k,p,f,c,s:sc,pc})});
+const foodList=()=>[...S.foodDb.map(o=>rowOf(o,true)),...BUILTIN];
+function findFood(seg,list){const hay=' '+seg+' ';let best=null,bl=0;for(const f of list)for(const a of f.a){if(a.length>bl&&hay.includes(' '+a)){best=f;bl=a.length}}return best}
+function parseQty(seg,f){
+  const sp=seg.match(/(\d+(?:[.,]\d+)?)?\s*(чайн[а-я]*|столов[а-я]*|ст\.?|ч\.?)?\s*ложк/);
+  if(sp)return{g:(sp[1]?parseFloat(sp[1].replace(',','.')):1)*(sp[2]&&/^(чайн|ч)/.test(sp[2])?5:15),note:''};
+  const m=seg.match(/(\d+(?:[.,]\d+)?)\s*(кг|килограмм[а-я]*|мл|л|литр[а-я]*|гр|грамм[а-я]*|г)(?![а-яa-z])/);
+  if(m){const v=parseFloat(m[1].replace(',','.'));return{g:/^(кг|килограмм|л|литр)/.test(m[2])?v*1000:v,note:''}}
+  const n=seg.match(/(\d+(?:[.,]\d+)?)/),cnt=n?parseFloat(n[1].replace(',','.')):1;
+  if(f.pc)return{g:cnt*f.pc,note:''};
+  const d=f.k>=700||f.c>=80?10:(f.k<=60&&f.p+f.f+f.c<12)?200:150,u=n?cnt*100:d;
+  return{g:u,note:'порция без веса принята '+Math.round(u)+' г'}}
+function localMeal(text){const list=foodList(),items=[],unk=[];
+  norm(text).split(/[,;\n+]|\sи\s|\sс\s/).map(x=>x.trim()).filter(Boolean).forEach(seg=>{const f=findFood(seg,list);if(!f){unk.push(seg);return}
+    const q=parseQty(seg,f),r=q.g/100;items.push({n:f.n,g:Math.round(q.g),k:f.k*r,p:f.p*r,f:f.f*r,c:f.c*r,s:f.s,note:q.note})});
+  return{items,unk}}
+async function saveFile(name,text){
+  if(!dl){try{dl=await claude.use('downloads')}catch(e){}}
+  if(dl){await dl.save({filename:name,data:text});return true}
+  if(typeof claude==='undefined'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove();return true}
+  toast('Скачивание недоступно в этом окне');return false}
+const cloudFood=()=>db&&cw(()=>db.doc(P+'/fooddb').set({rows:S.foodDb}));
+const dbInfo=()=>{$('dbInfo').textContent='Встроено продуктов: '+BUILTIN.length+' · своих: '+S.foodDb.length};
+$('fdq').oninput=()=>{const q=norm($('fdq').value.trim()),box=$('fdr');box.innerHTML='';if(q.length<2)return;
+  const hits=foodList().filter(f=>norm(f.n).includes(q)||f.a.some(a=>(' '+a).includes(' '+q))).slice(0,8);
+  if(!hits.length)box.appendChild(el('div','meta','Не найдено. Добавьте продукт в свою базу (Данные).'));
+  hits.forEach(f=>{const r=el('div','it');r.appendChild(el('div',null,f.n+(f.my?' ★':'')));r.appendChild(el('div','meta',f.k+' ккал · Б '+f.p+' · Ж '+f.f+' · У '+f.c+' (на 100 г)'));box.appendChild(r)})};
+$('dbTpl').onclick=async()=>{const rows=[['название','ккал','белок','жиры','углеводы','оценка','штука_г','синонимы']];
+  BUILTIN.forEach(f=>rows.push([f.n,f.k,f.p,f.f,f.c,f.s,f.pc,f.al.replace(/,/g,'/')]));
+  try{if(await saveFile('food-db.csv','\uFEFF'+rows.map(r=>r.map(q).join(';')).join('\r\n')))toast('База сохранена')}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
+$('dbImpBtn').onclick=()=>$('dbImp').click();
+$('dbImp').onchange=()=>{const file=$('dbImp').files[0];if(!file)return;const fr=new FileReader();
+  fr.onload=()=>{try{const rows=parseCSV(String(fr.result)),H=rows[0].map(x=>x.trim().toLowerCase()),ix=n=>H.indexOf(n);
+    const iN=ix('название'),iK=ix('ккал');if(iN<0||iK<0){toast('Нужны столбцы «название» и «ккал»');return}
+    const num2=(r,n)=>{const i=ix(n);return i<0?0:parseFloat(String(r[i]||'0').replace(/\s/g,'').replace(',','.'))||0};
+    const map=new Map(S.foodDb.map(o=>[norm(o.n),o]));let n=0;
+    rows.slice(1,1201).forEach(r=>{const name=(r[iN]||'').trim().slice(0,60);if(!name)return;const i=ix('синонимы');
+      map.set(norm(name),{n:name,k:num2(r,'ккал'),p:num2(r,'белок'),f:num2(r,'жиры'),c:num2(r,'углеводы'),s:Math.min(10,num2(r,'оценка')),pc:num2(r,'штука_г'),al:i<0?'':String(r[i]||'').split('/').map(x=>x.trim()).filter(Boolean).join(',')});n++});
+    S.foodDb=[...map.values()].slice(0,1500);save();cloudFood();dbInfo();toast('Загружено продуктов: '+n)}catch(e){toast('Не удалось прочитать файл')}$('dbImp').value=''};
+  fr.readAsText(file,'utf-8')};
+$('dbClr').onclick=()=>{const b=$('dbClr');if(!b.dataset.a){b.dataset.a='1';b.textContent='Нажмите ещё раз';setTimeout(()=>{b.dataset.a='';b.textContent='Удалить мою базу'},4000);return}
+  S.foodDb=[];save();cloudFood();dbInfo();b.dataset.a='';b.textContent='Удалить мою базу';toast('Своя база удалена')};
+$('eco').checked=!!S.eco;$('eco').onchange=()=>{S.eco=$('eco').checked;save()};
+
+/* full backup */
+$('jExp').onclick=async()=>{const o={v:1,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,foodDb:S.foodDb};
+  try{if(await saveFile('backup-'+today()+'.json',JSON.stringify(o)))toast('Копия сохранена')}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
+$('jImpBtn').onclick=()=>$('jImp').click();
+$('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=new FileReader();
+  fr.onload=async()=>{try{const o=JSON.parse(String(fr.result)),add=[];
+    const V={items:x=>typeof x.name==='string'&&x.amount>0&&x.date,tasks:x=>typeof x.title==='string',gym:x=>typeof x.ex==='string',body:x=>x.w>0,meals:x=>typeof x.text==='string'};
+    [['items','i_'],['tasks','t_'],['gym','g_'],['body','b_'],['meals','m_']].forEach(([k,pre])=>{const have=new Set(S[k].map(x=>x.id));
+      (Array.isArray(o[k])?o[k]:[]).forEach(x=>{if(x&&typeof x==='object'&&x.id&&!have.has(x.id)&&V[k](x)){S[k].push(x);add.push([pre,x])}})});
+    if(o.prof&&typeof o.prof==='object'){S.prof={...S.prof,...o.prof};fillProf();cloudProf()}
+    if(o.limit>0){S.limit=o.limit;$('limit').value=S.limit}if(typeof o.cur==='string'){S.cur=o.cur;$('cur').value=S.cur}cloudSettings(true);
+    if(Array.isArray(o.foodDb)&&o.foodDb.length){const m=new Map(S.foodDb.map(f=>[norm(f.n),f]));o.foodDb.forEach(f=>{if(f&&typeof f.n==='string')m.set(norm(f.n),f)});S.foodDb=[...m.values()].slice(0,1500);cloudFood()}
+    save();renderAll();toast('Загружено записей: '+add.length);for(const [pre,x] of add)await gcl(pre,x)}
+    catch(e){toast('Не удалось прочитать файл')}$('jImp').value=''};
+  fr.readAsText(file,'utf-8')};
+
+function renderAll(){renderRemind();if(tab==='ov')renderOv();if(tab==='buys')renderBuys();if(tab==='tasks')renderTasks();if(tab==='gym')renderGym();if(tab==='body')renderBody();if(tab==='food'){renderFood();renderMeals()}if(tab==='ai')renderAI();if(tab==='data')dbInfo()}
+S.items.forEach(i=>{if(!i.date)i.date=today()});
+(async()=>{
   try{sample=await claude.use('sample')}catch(e){}
   try{dl=await claude.use('downloads')}catch(e){}
   try{const d=await claude.use('db'),u=await claude.use('user'),id=u&&await u.id();if(d&&id){db=d;P='data/users/'+id;connect()}}catch(e){db=null}
   setSync();renderAll()})();
 show();
-
-/* ===== PWA helpers: theme + global search ===== */
+</script><script>
 (function(){
-  const THEME_KEY='myday-theme';
-  function applyTheme(v){
-    const t=v==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v;
-    document.documentElement.dataset.theme=t;
-    const sel=document.getElementById('myThemeSelect'); if(sel)sel.value=v;
-  }
-  let theme='auto'; try{theme=localStorage.getItem(THEME_KEY)||'auto'}catch(e){}
-  const dataSec=document.getElementById('t-data');
-  if(dataSec){
-    const c=document.createElement('div'); c.className='card';
-    c.innerHTML='<h2>Внешний вид</h2><p class="muted" style="margin-top:0">Настройки интерфейса спрятаны здесь, чтобы навигация оставалась спокойной.</p><label>Тема<select id="myThemeSelect"><option value="auto">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label>';
-    dataSec.insertBefore(c, dataSec.lastElementChild);
-    document.getElementById('myThemeSelect').onchange=function(){theme=this.value;try{localStorage.setItem(THEME_KEY,theme)}catch(e){}applyTheme(theme)};
-  }
-  applyTheme(theme);
-  const head=document.querySelector('.hin');
-  if(head){
-    const b=document.createElement('button'); b.id='my-search-launch'; b.type='button'; b.textContent='⌕  Поиск  (Ctrl/⌘ K)'; head.appendChild(b);
-    b.onclick=()=>openSearch();
-  }
-  const ov=document.createElement('div'); ov.id='my-search-overlay'; ov.innerHTML='<div id="my-search-dialog"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><strong>Поиск по приложению</strong><button id="mySearchClose" class="ed" style="font-size:16px">✕</button></div><input id="my-search-input" placeholder="Покупка, дело, упражнение, продукт…" autocomplete="off"><div id="my-search-results" style="max-height:58vh;overflow:auto;margin-top:10px"><div class="empty">Начните вводить запрос.</div></div></div>';
-  document.body.appendChild(ov);
-  document.getElementById('mySearchClose').onclick=closeSearch;
-  ov.onclick=e=>{if(e.target===ov)closeSearch()};
-  const inp=document.getElementById('my-search-input');
-  function items(){
-    const out=[];
-    (S.items||[]).forEach(x=>out.push({tab:'buys',type:'Покупка',title:x.name,meta:(x.date||'')+' · '+(x.amount||0)+' '+S.cur}));
-    (S.tasks||[]).forEach(x=>out.push({tab:'tasks',type:'Дело',title:x.title,meta:x.done?'выполнено':(x.due||'без срока')}));
-    (S.gym||[]).forEach(x=>out.push({tab:'gym',type:'Тренировка',title:x.ex,meta:(x.date||'')+' · '+x.sets+'×'+x.reps+(x.w?' · '+x.w+' кг':'')}));
-    (S.body||[]).forEach(x=>out.push({tab:'body',type:'Вес',title:String(x.w)+' кг',meta:(x.date||'')+(x.waist?' · талия '+x.waist+' см':'')}));
-    (S.meals||[]).forEach(x=>out.push({tab:'food',type:'Питание',title:x.text,meta:(x.date||'')+' · '+(x.kcal||0)+' ккал'}));
-    (S.foodDb||[]).forEach(x=>out.push({tab:'food',type:'Продукт',title:x.n,meta:(x.k||0)+' ккал на 100 г'}));
-    return out;
-  }
-  function renderSearch(q){
-    const box=document.getElementById('my-search-results'); q=q.trim().toLowerCase(); if(!q){box.innerHTML='<div class="empty">Начните вводить запрос.</div>';return}
-    const hits=items().filter(x=>(x.title+' '+x.meta+' '+x.type).toLowerCase().includes(q)).slice(0,30);
-    box.innerHTML=hits.length?'':'<div class="empty">Ничего не найдено.</div>';
-    hits.forEach(x=>{const d=document.createElement('div');d.className='my-result';d.innerHTML='<strong>'+escapeHtml(x.title)+'</strong><span>'+escapeHtml(x.type+' · '+x.meta)+'</span>';d.onclick=()=>{tab=x.tab;show();closeSearch()};box.appendChild(d)})
-  }
-  inp.oninput=()=>renderSearch(inp.value);
-  function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-  function openSearch(){ov.classList.add('on');inp.value='';renderSearch('');setTimeout(()=>inp.focus(),0)}
-  function closeSearch(){ov.classList.remove('on')}
-  window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()} if(e.key==='Escape')closeSearch()});
+ const root=document.documentElement,themeSelect=document.getElementById('themeSelect');
+ function applyTheme(v){root.setAttribute('data-theme',v==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v);if(themeSelect)themeSelect.value=v;localStorage.setItem('myday-theme',v)}
+ applyTheme(localStorage.getItem('myday-theme')||'auto'); if(themeSelect)themeSelect.onchange=()=>applyTheme(themeSelect.value);
+ const sideTheme=document.getElementById('sideTheme'); if(sideTheme)sideTheme.onclick=()=>{const n=localStorage.getItem('myday-theme')||'auto';applyTheme(n==='dark'?'light':n==='light'?'auto':'dark')};
+ const overlay=document.getElementById('searchOverlay'),input=document.getElementById('globalSearch'),results=document.getElementById('searchResults');
+ function openSearch(){overlay.classList.add('on');setTimeout(()=>input.focus(),20);renderSearch(input.value)} function closeSearch(){overlay.classList.remove('on')}
+ document.getElementById('searchLaunch').onclick=openSearch;document.getElementById('sideSearch').onclick=openSearch;document.getElementById('searchClose').onclick=closeSearch;overlay.onclick=e=>{if(e.target===overlay)closeSearch};
+ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()}if(e.key==='Escape')closeSearch()});
+ function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+ function renderSearch(q){q=(q||'').trim().toLowerCase();if(!q){results.innerHTML='<div class="empty">Начните вводить запрос.</div>';return}const out=[];const add=(type,title,meta,tabId)=>{if((title+' '+meta).toLowerCase().includes(q))out.push({type,title,meta,tabId})};
+  const labels={ov:'Обзор',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',data:'Данные'};Object.entries(labels).forEach(([id,label])=>add('Раздел',label,'Открыть раздел',id));
+  (typeof S!=='undefined' ? (S.items||[]) : []).forEach(i=>add('Покупка',i.name,(i.amount||0)+' '+(S.cur||'')+' · '+(i.cat||''),'buys'));(typeof S!=='undefined' ? (S.tasks||[]) : []).forEach(t=>add('Дело',t.title,(t.prio||'')+' · '+(t.done?'выполнено':'открыто'),'tasks'));(typeof S!=='undefined' ? (S.gym||[]) : []).forEach(g=>add('Зал',g.ex,g.date+' · '+g.sets+'×'+g.reps,'gym'));(typeof S!=='undefined' ? (S.body||[]) : []).forEach(b=>add('Форма',b.date,b.w+' кг'+(b.waist?' · талия '+b.waist+' см':''),'body'));(typeof S!=='undefined' ? (S.meals||[]) : []).forEach(m=>add('Питание',m.text,m.date+' · '+m.kcal+' ккал','food'));
+  if(!out.length){results.innerHTML='<div class="empty">Ничего не найдено.</div>';return}results.innerHTML=out.slice(0,30).map((r,i)=>'<button class="result" data-i="'+i+'" style="display:block;width:100%;text-align:left"><strong>'+esc(r.title)+'</strong><span>'+esc(r.type)+' · '+esc(r.meta)+'</span></button>').join('');[...results.querySelectorAll('.result')].forEach((b,i)=>b.onclick=()=>{tab=out[i].tabId;show();closeSearch()})}
+ input.oninput=()=>renderSearch(input.value);
+ document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>{tab=b.dataset.quick;show();setTimeout(()=>{const map={buys:'a_name',tasks:'t_title',gym:'g_ex',food:'m_text'};const e=document.getElementById(map[b.dataset.quick]);if(e)e.focus()},80)});
+ document.getElementById('mobileMenu').onclick=()=>document.body.classList.toggle('nav-open');document.addEventListener('click',e=>{if(innerWidth<=920&&document.body.classList.contains('nav-open')&&e.target.closest('#nav button'))document.body.classList.remove('nav-open')});
+ const titleMap={ov:'Сегодня',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',data:'Данные'};const obs=new MutationObserver(()=>{const t=titleMap[typeof tab!=='undefined'?tab:'ov'];if(t)document.getElementById('pageTitle').textContent=t});obs.observe(document.getElementById('nav'),{childList:true,subtree:true,attributes:true});
 })();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
-</script>
-</body>
-</html>
+</script></body></html>
