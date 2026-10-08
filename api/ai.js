@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       signal: controller.signal,
       headers: {
         "content-type": "application/json",
-        "x-api-key": apiKey,
+        "Authorization": `Bearer ${apiKey}`,
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
