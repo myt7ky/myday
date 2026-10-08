@@ -3,6 +3,39 @@
   </div>
 </div>
 <script>
+/* Standalone Claude API bridge. The API key stays on the server. */
+window.MYDAY_AI_ENDPOINT=window.MYDAY_AI_ENDPOINT||localStorage.getItem('myday-ai-endpoint')||'/api/ai';
+async function mydayClaudeRequest(prompt){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
+  try{
+    const r=await fetch(window.MYDAY_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt}),signal:controller.signal});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){const e=new Error(d.error||'Ошибка Claude API');e.code=d.code||'api_error';throw e}
+    return String(d.text||'').trim();
+  }catch(e){
+    if(e.name==='AbortError')e.code='timeout';
+    throw e;
+  }finally{clearTimeout(timer)}
+}
+function mydayParseJSON(text){
+  let s=String(text||'').trim().replace(/^\`\`\`(?:json)?\s*/i,'').replace(/\s*\`\`\`$/,'').trim();
+  try{return JSON.parse(s)}catch(e){}
+  const a=Math.min(...[s.indexOf('{'),s.indexOf('[')].filter(x=>x>=0));
+  const b=Math.max(s.lastIndexOf('}'),s.lastIndexOf(']'));
+  if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1))}catch(e){}}
+  throw Object.assign(new Error('Claude вернул невалидный JSON'),{code:'invalid_json'});
+}
+const mydaySample=async prompt=>({text:await mydayClaudeRequest(prompt)});
+mydaySample.json=async prompt=>mydayParseJSON(await mydayClaudeRequest(prompt));
+window.claude={
+  use:async kind=>{
+    if(kind==='sample')return mydaySample;
+    if(kind==='downloads')return {save:async({filename,data})=>{
+      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/plain;charset=utf-8'}));a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }};
+    return null;
+  }
+};
 const CATS=['Еда и кафе','Транспорт','Развлечения','Одежда','Техника','Подписки','Здоровье и спорт','Дом','Другое'];
 const FEELS=['Доволен','Нормально','Зря потратил'];
 const KEY='spend-v1';
