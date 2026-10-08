@@ -166,5 +166,6 @@ const oldShow=show;
 show=function(){oldShow();syncMobileNav()};
 document.addEventListener('click',e=>{if(innerWidth<=920&&document.body.classList.contains('nav-open')&&e.target.closest('#nav button'))document.body.classList.remove('nav-open')});
  const titleMap={ov:'Сегодня',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',data:'Данные'};const obs=new MutationObserver(()=>{const t=titleMap[typeof tab!=='undefined'?tab:'ov'];if(t)document.getElementById('pageTitle').textContent=t});obs.observe(document.getElementById('nav'),{childList:true,subtree:true,attributes:true});
+syncMobileNav();
 })();
 </script></body></html>
