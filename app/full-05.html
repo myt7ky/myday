@@ -322,6 +322,7 @@
 кубанская буренка творог|кубанская буренка творог|121|17|5|2|10|0
 просто молоко|просто молоко|52|3|2.5|4.7|8|250
 ростагрокомплекс молоко|ростагрокомплекс|52|3|2.5|4.7|8|250
+`
 const rowOf=(o,my)=>({n:o.n,al:o.al||'',a:norm(o.n.replace(/\s*\(.*\)/,'')+','+(o.al||'')).split(',').filter(Boolean),k:+o.k,p:+o.p,f:+o.f,c:+o.c,s:+o.s||0,pc:+o.pc||0,my});
 const BUILTIN=RAW.split('\n').filter(Boolean).map(l=>{const [n,a,k,p,f,c,sc,pc]=l.split('|');return rowOf({n,al:a,k,p,f,c,s:sc,pc})});
 const foodList=()=>[...S.foodDb.map(o=>rowOf(o,true)),...BUILTIN];
