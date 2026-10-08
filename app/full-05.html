@@ -369,7 +369,7 @@ $('dbClr').onclick=()=>{const b=$('dbClr');if(!b.dataset.a){b.dataset.a='1';b.te
 $('eco').checked=!!S.eco;$('eco').onchange=()=>{S.eco=$('eco').checked;save()};
 
 /* full backup */
-$('jExp').onclick=async()=>{const o={v:1,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,foodDb:S.foodDb};
+$('jExp').onclick=async()=>{const o={v:1,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,sleep:S.sleep,foodDb:S.foodDb};
   try{if(await saveFile('backup-'+today()+'.json',JSON.stringify(o)))toast('Копия сохранена')}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
 $('jImpBtn').onclick=()=>$('jImp').click();
 $('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=new FileReader();
@@ -379,12 +379,41 @@ $('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=n
       (Array.isArray(o[k])?o[k]:[]).forEach(x=>{if(x&&typeof x==='object'&&x.id&&!have.has(x.id)&&V[k](x)){S[k].push(x);add.push([pre,x])}})});
     if(o.prof&&typeof o.prof==='object'){S.prof={...S.prof,...o.prof};fillProf();cloudProf()}
     if(o.limit>0){S.limit=o.limit;$('limit').value=S.limit}if(typeof o.cur==='string'){S.cur=o.cur;$('cur').value=S.cur}cloudSettings(true);
+    if(Array.isArray(o.sleep)){const have=new Set(S.sleep.map(x=>x.id));o.sleep.filter(x=>x&&x.id&&x.date&&x.bed&&x.wake).forEach(x=>{if(!have.has(x.id))S.sleep.push(x)});S.sleep.sort((a,b)=>a.date.localeCompare(b.date))}
     if(Array.isArray(o.foodDb)&&o.foodDb.length){const m=new Map(S.foodDb.map(f=>[norm(f.n),f]));o.foodDb.forEach(f=>{if(f&&typeof f.n==='string')m.set(norm(f.n),f)});S.foodDb=[...m.values()].slice(0,1500);cloudFood()}
     save();renderAll();toast('Загружено записей: '+add.length);for(const [pre,x] of add)await gcl(pre,x)}
     catch(e){toast('Не удалось прочитать файл')}$('jImp').value=''};
   fr.readAsText(file,'utf-8')};
 
-function renderAll(){renderRemind();if(tab==='ov')renderOv();if(tab==='buys')renderBuys();if(tab==='tasks')renderTasks();if(tab==='gym')renderGym();if(tab==='body')renderBody();if(tab==='food'){renderFood();renderMeals()}if(tab==='ai')renderAI();if(tab==='data')dbInfo()}
+/* ===== sleep tracker: local statistics and recommendations, no AI ===== */
+function sleepClockMin(v){const m=String(v||'').match(/^(\\d{1,2}):(\\d{2})$/);return m?(+m[1]*60 + +m[2]):null}
+function sleepDuration(bed,wake){const a=sleepClockMin(bed),b=sleepClockMin(wake);if(a==null||b==null)return 0;let d=b-a;if(d<=0)d+=1440;return d}
+function sleepHM(min){min=Math.max(0,Math.round(min||0));const h=Math.floor(min/60),m=min%60;return h+' ч '+String(m).padStart(2,'0')+' мин'}
+function sleepShort(min){return Math.round((min/60)*10)/10+' ч'}
+function sleepClock(min){min=((Math.round(min)||0)%1440+1440)%1440;return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0')}
+function sleepCircularMean(vals){const vs=vals.filter(v=>v!=null);if(!vs.length)return null;let x=0,y=0;vs.forEach(v=>{const a=v/1440*Math.PI*2;x+=Math.cos(a);y+=Math.sin(a)});let a=Math.atan2(y,x);if(a<0)a+=Math.PI*2;return a/(Math.PI*2)*1440}
+function sleepClockDeviation(vals,mean){const vs=vals.filter(v=>v!=null);if(!vs.length||mean==null)return 0;return vs.reduce((s,v)=>s+Math.abs(((v-mean+720)%1440)-720),0)/vs.length}
+function sleepStats(list){const a=list.filter(x=>x&&x.date&&sleepDuration(x.bed,x.wake)>0);if(!a.length)return{n:0,avg:0,q:0,good:0,last:null,avgBed:null,avgWake:null,bedDev:0,wakeDev:0};const ds7=a.filter(x=>x.date>=ds(new Date(Date.now()-6*864e5)));const src=ds7.length?ds7:a;const avg=arr=>arr.reduce((s,x)=>s+sleepDuration(x.bed,x.wake),0)/arr.length;const q=arr=>arr.reduce((s,x)=>s+(Number(x.quality)||0),0)/arr.length;const bed=sleepCircularMean(src.map(x=>sleepClockMin(x.bed))),wake=sleepCircularMean(src.map(x=>sleepClockMin(x.wake)));return{n:a.length,avg:avg(src),q:q(src),good:src.filter(x=>sleepDuration(x.bed,x.wake)>=420&&sleepDuration(x.bed,x.wake)<=540).length,last:a.slice().sort((x,y)=>y.date.localeCompare(x.date))[0],avgBed:bed,avgWake:wake,bedDev:sleepClockDeviation(src.map(x=>sleepClockMin(x.bed)),bed),wakeDev:sleepClockDeviation(src.map(x=>sleepClockMin(x.wake)),wake)}}
+function localSleepAdvice(all){const a=all.filter(x=>sleepDuration(x.bed,x.wake)>0).slice().sort((x,y)=>y.date.localeCompare(x.date)),out=[];if(!a.length)return['Запишите первую ночь — после нескольких записей статистика станет намного полезнее.'];const s7=sleepStats(a.slice(0,7));const last=s7.last,lastDur=last?sleepDuration(last.bed,last.wake):0;
+  if(lastDur&&lastDur<360)out.push('⚠️ Последняя ночь была короткой — '+sleepHM(lastDur)+'. Постарайтесь сегодня дать себе больше времени на сон.');
+  else if(lastDur&&lastDur<420)out.push('🟠 Последняя ночь короче 7 часов — '+sleepHM(lastDur)+'. Попробуйте немного увеличить время в постели.');
+  if(s7.n>=3&&s7.avg<420)out.push('📉 Средний сон за 7 дней — '+sleepHM(s7.avg)+'. Полезно сдвинуть отход ко сну раньше хотя бы на 20–30 минут.');
+  if(s7.n>=3&&s7.q<3)out.push('💤 Средняя оценка качества — '+s7.q.toFixed(1)+'/5. Отмечайте, что мешало спать: это поможет заметить повторяющиеся факторы.');
+  if(s7.n>=3&&s7.bedDev>60)out.push('🕐 Время отбоя заметно плавает — в среднем разброс около '+Math.round(s7.bedDev)+' мин. Попробуйте держать время отбоя стабильнее.');
+  if(s7.n>=3&&s7.wakeDev>60)out.push('☀️ Время подъёма тоже меняется. Более стабильный график обычно проще поддерживать, чем резкие скачки.');
+  if(s7.n>=3&&s7.avg>540)out.push('🔎 В среднем выходит больше 9 часов сна. Оцените самочувствие и продолжайте наблюдать за режимом; приложение не ставит диагнозов.');
+  if(s7.n>=5&&s7.avg>=420&&s7.avg<=540&&s7.q>=3.5&&!out.length)out.push('✅ Режим выглядит стабильным: средний сон около '+sleepHM(s7.avg)+', качество '+s7.q.toFixed(1)+'/5. Сохраняйте такой ритм.');
+  if(!out.length)out.push('✅ Пока явных проблем по вашим записям не видно. Продолжайте отмечать сон, чтобы увидеть закономерности за 2–4 недели.');
+  return out.slice(0,4)}
+function renderSleep(){if(!$('slTiles'))return;S.sleep=Array.isArray(S.sleep)?S.sleep:[];const all=S.sleep.slice().sort((a,b)=>a.date.localeCompare(b.date));const last14=[];for(let i=13;i>=0;i--){const d=ds(new Date(Date.now()-i*864e5)),x=all.find(z=>z.date===d);last14.push({d,x})}const valid=all.filter(x=>sleepDuration(x.bed,x.wake)>0),s7=sleepStats(valid.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,7)),d30=new Date(Date.now()-29*864e5),a30=valid.filter(x=>x.date>=ds(d30)),avg30=a30.length?a30.reduce((s,x)=>s+sleepDuration(x.bed,x.wake),0)/a30.length:0;
+  tiles($('slTiles'),[['Среднее за 7 дней',s7.n?sleepHM(s7.avg):'—'],['Качество',s7.n?s7.q.toFixed(1)+'/5':'—'],['Ночей 7–9 ч',s7.n?s7.good+'/'+s7.n:'—'],['Среднее за 30 дней',avg30?sleepHM(avg30):'—']]);
+  const vals=last14.map(({x})=>x?sleepDuration(x.bed,x.wake)/60:0),labs=last14.map(({d})=>d.slice(8,10)+'.'+d.slice(5,7));const ch=$('slChart');ch.innerHTML='';ch.appendChild(vals.some(Boolean)?bars(vals,labs,true):el('div','empty','Пока нет записей за последние 14 дней.'));
+  const adv=$('slAdvice');adv.innerHTML='';localSleepAdvice(valid).forEach(x=>adv.appendChild(el('p',x.startsWith('⚠️')?'bad':x.startsWith('🟠')?'mid':'meta',x)));
+  const list=$('slList');list.innerHTML='';const rows=all.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);if(!rows.length){list.appendChild(el('div','empty','Записей пока нет.'));return}
+  rows.forEach(x=>{const r=el('div','it'),l=el('div'),rt=el('div','r'),dur=sleepDuration(x.bed,x.wake);l.appendChild(el('div','nm','🌙 '+dmy(x.date)+' · '+sleepHM(dur)));l.appendChild(el('div','meta',x.bed+' → '+x.wake+' · качество '+x.quality+'/5'+(x.note?' · '+x.note:'')));const del=el('button','ed','× Удалить');del.onclick=()=>{if(!del.dataset.a){del.dataset.a='1';del.textContent='Точно?';return}S.sleep=S.sleep.filter(z=>z.id!==x.id);save();renderSleep();toast('Запись сна удалена')};rt.appendChild(del);r.appendChild(l);r.appendChild(rt);list.appendChild(r)})}
+if($('sl_date')&&!$('sl_date').value)$('sl_date').value=today();
+if($('slSave')&&!$('slSave').dataset.bound){$('slSave').dataset.bound='1';$('slSave').onclick=()=>{const date=$('sl_date').value||today(),bed=$('sl_bed').value,wake=$('sl_wake').value,quality=Number($('sl_quality').value)||3,note=$('sl_note').value.trim().slice(0,120),dur=sleepDuration(bed,wake);if(!bed||!wake){toast('Укажите время сна и пробуждения');return}if(dur<60||dur>1200){toast('Проверьте время: длительность должна быть от 1 до 20 часов');return}S.sleep=S.sleep.filter(x=>x.date!==date);S.sleep.push({id:Date.now(),date,bed,wake,quality,note});S.sleep.sort((a,b)=>a.date.localeCompare(b.date));save();renderSleep();toast('Сон записан')}}
+function renderAll(){renderRemind();if(tab==='ov')renderOv();if(tab==='buys')renderBuys();if(tab==='tasks')renderTasks();if(tab==='gym')renderGym();if(tab==='body')renderBody();if(tab==='food'){renderFood();renderMeals()}if(tab==='ai')renderAI();if(tab==='sleep')renderSleep();if(tab==='data')dbInfo()}
 S.items.forEach(i=>{if(!i.date)i.date=today()});
 (async()=>{
   try{sample=await claude.use('sample')}catch(e){}
@@ -404,9 +433,9 @@ show();
  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()}if(e.key==='Escape')closeSearch()});
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
  function renderSearch(q){q=(q||'').trim().toLowerCase();if(!q){results.innerHTML='<div class="empty">Начните вводить запрос.</div>';return}const out=[];const add=(type,title,meta,tabId,target)=>{if((title+' '+meta).toLowerCase().includes(q))out.push({type,title,meta,tabId,target})};
-  const labels={ov:'Обзор',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',data:'Данные'};Object.entries(labels).forEach(([id,label])=>add('Раздел',label,'Открыть раздел',id));
+  const labels={ov:'Обзор',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',sleep:'Сон',data:'Данные'};Object.entries(labels).forEach(([id,label])=>add('Раздел',label,'Открыть раздел',id));
   add('Настройки','Настройки','Тема интерфейса, валюта и управление данными','data','themeSelect');
-  (typeof S!=='undefined' ? (S.items||[]) : []).forEach(i=>add('Покупка',i.name,(i.amount||0)+' '+(S.cur||'')+' · '+(i.cat||''),'buys'));(typeof S!=='undefined' ? (S.tasks||[]) : []).forEach(t=>add('Дело',t.title,(t.prio||'')+' · '+(t.done?'выполнено':'открыто'),'tasks'));(typeof S!=='undefined' ? (S.gym||[]) : []).forEach(g=>add('Зал',g.ex,g.date+' · '+g.sets+'×'+g.reps,'gym'));(typeof S!=='undefined' ? (S.body||[]) : []).forEach(b=>add('Форма',b.date,b.w+' кг'+(b.waist?' · талия '+b.waist+' см':''),'body'));(typeof S!=='undefined' ? (S.meals||[]) : []).forEach(m=>add('Питание',m.text,m.date+' · '+m.kcal+' ккал','food'));
+  (typeof S!=='undefined' ? (S.items||[]) : []).forEach(i=>add('Покупка',i.name,(i.amount||0)+' '+(S.cur||'')+' · '+(i.cat||''),'buys'));(typeof S!=='undefined' ? (S.tasks||[]) : []).forEach(t=>add('Дело',t.title,(t.prio||'')+' · '+(t.done?'выполнено':'открыто'),'tasks'));(typeof S!=='undefined' ? (S.gym||[]) : []).forEach(g=>add('Зал',g.ex,g.date+' · '+g.sets+'×'+g.reps,'gym'));(typeof S!=='undefined' ? (S.body||[]) : []).forEach(b=>add('Форма',b.date,b.w+' кг'+(b.waist?' · талия '+b.waist+' см':''),'body'));(typeof S!=='undefined' ? (S.meals||[]) : []).forEach(m=>add('Питание',m.text,m.date+' · '+m.kcal+' ккал','food'));(typeof S!=='undefined' ? (S.sleep||[]) : []).forEach(s=>add('Сон',s.date,s.bed+' → '+s.wake+' · '+sleepHM(sleepDuration(s.bed,s.wake)),'sleep'));
   if(!out.length){results.innerHTML='<div class="empty">Ничего не найдено.</div>';return}results.innerHTML=out.slice(0,30).map((r,i)=>'<button class="result" data-i="'+i+'" style="display:block;width:100%;text-align:left"><strong>'+esc(r.title)+'</strong><span>'+esc(r.type)+' · '+esc(r.meta)+'</span></button>').join('');[...results.querySelectorAll('.result')].forEach((b,i)=>b.onclick=()=>{const r=out[i];tab=r.tabId;show();closeSearch();if(r.target)setTimeout(()=>document.getElementById(r.target)?.scrollIntoView({behavior:'smooth',block:'center'}),60)})}
  input.oninput=()=>renderSearch(input.value);
  document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>{tab=b.dataset.quick;show();setTimeout(()=>{const map={buys:'a_name',tasks:'t_title',gym:'g_ex',food:'m_text'};const e=document.getElementById(map[b.dataset.quick]);if(e)e.focus()},80)});
@@ -430,7 +459,7 @@ function syncMobileNav(){
 const oldShow=show;
 show=function(){oldShow();syncMobileNav()};
 document.addEventListener('click',e=>{if(innerWidth<=920&&document.body.classList.contains('nav-open')&&e.target.closest('#nav button'))document.body.classList.remove('nav-open')});
- const titleMap={ov:'Сегодня',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',data:'Данные'};const obs=new MutationObserver(()=>{const t=titleMap[typeof tab!=='undefined'?tab:'ov'];if(t)document.getElementById('pageTitle').textContent=t});obs.observe(document.getElementById('nav'),{childList:true,subtree:true,attributes:true});
+ const titleMap={ov:'Сегодня',buys:'Покупки',ai:'Анализ трат',tasks:'Дела',gym:'Зал',body:'Форма',food:'Питание',sleep:'Сон',data:'Данные'};const obs=new MutationObserver(()=>{const t=titleMap[typeof tab!=='undefined'?tab:'ov'];if(t)document.getElementById('pageTitle').textContent=t});obs.observe(document.getElementById('nav'),{childList:true,subtree:true,attributes:true});
 syncMobileNav();
 })();
 </script></body></html>
