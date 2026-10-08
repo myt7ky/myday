@@ -65,7 +65,7 @@ const localPurchaseAnalysis=i=>{
   return{verdict,pros,cons,harsh:verdict==='зря'?'Покупка выглядит слабой по соотношению цены и пользы.':verdict==='спорно'?'Не критичная трата, но её стоит контролировать, особенно если она повторяется.':'Похоже на оправданную трату, если она соответствует вашему плану.',alt:alt.join('; ')};
 };
 const KEY='spend-v1';
-let S={items:[],cur:'RON',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],foodDb:[],budgets:{},recurring:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
+let S={items:[],cur:'RON',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],sleep:[],foodDb:[],budgets:{},recurring:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)S={...S,...s}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
@@ -92,7 +92,7 @@ function setF(p,i){$(p+'name').value=i.name||'';$(p+'amount').value=i.amount||''
 $('addFields').innerHTML=fields('a_');$('editFields').innerHTML=fields('e_');setF('a_',{});
 
 /* tabs */
-const GROUPS=[['🏠 Обзор',[['ov','Обзор']]],['💸 Деньги',[['buys','Покупки'],['ai','Анализ трат']]],['✅ Дела',[['tasks','Дела']]],['💪 Здоровье',[['gym','Зал'],['body','Форма'],['food','Питание']]],['⚙️ Данные',[['data','Данные']]]],memo={};
+const GROUPS=[['🏠 Обзор',[['ov','Обзор']]],['💸 Деньги',[['buys','Покупки'],['ai','Анализ трат']]],['✅ Дела',[['tasks','Дела']]],['💪 Здоровье',[['gym','Зал'],['body','Форма'],['food','Питание'],['sleep','Сон']]],['⚙️ Данные',[['data','Данные']]]],memo={};
 function show(){const gi=GROUPS.findIndex(g=>g[1].some(x=>x[0]===tab)),nav=$('nav');nav.innerHTML='';
   GROUPS.forEach((g,i)=>{const b=el('button',i===gi?'on':'',g[0]);b.onclick=()=>{if(i!==gi){tab=memo[i]||g[1][0][0];show()}};nav.appendChild(b)});
   const sn=$('subnav'),subs=GROUPS[gi][1];sn.innerHTML='';memo[gi]=tab;
