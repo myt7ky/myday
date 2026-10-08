@@ -1,10 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Мой день — личный трекер</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#5b5bd6">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Мой день"><style>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Мой день — личный трекер</title><style>
 :root{--bg:#f4f6f8;--panel:#ffffff;--panel2:#f8fafc;--text:#111827;--muted:#6b7280;--accent:#5b5bd6;--good:#16a34a;--mid:#d97706;--bad:#dc2626;--border:#e5e7eb;--shadow:0 18px 50px rgba(15,23,42,.07)}
 :root[data-theme="dark"]{--bg:#0d1117;--panel:#151a21;--panel2:#10151b;--text:#eef2f7;--muted:#9aa4b2;--accent:#8b86ff;--good:#34d399;--mid:#fbbf24;--bad:#fb7185;--border:#2a3441;--shadow:0 18px 50px rgba(0,0,0,.26)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}button,input,select{font:inherit}button{cursor:pointer}
@@ -29,6 +23,19 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 </style></head><body>
 <div class="app"><aside class="sidebar"><div class="brand"><div class="mark">◒</div><h1>Мой день</h1><p>Финансы · дела · здоровье</p></div><nav id="nav"></nav><div class="side-actions"><button class="small-action" id="sideSearch">⌕ Поиск <span style="float:right;color:var(--muted)">Ctrl K</span></button><button class="small-action" id="sideTheme">◐ Тема</button></div></aside><div class="workspace"><header><div class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="page-title"><div class="eyebrow">ЛИЧНЫЙ ТРЕКЕР</div><h2 id="pageTitle">Сегодня</h2></div><div class="top-spacer"></div><div class="search-launch"><button id="searchLaunch">Поиск по данным приложения…</button></div><span id="sync" class="sync-pill">📱 только это устройство</span></div><div id="subnav"></div></header><main>
 <div id="remind"></div>
+<div class="today-hero">
+  <div>
+    <div class="eyebrow">ТВОЙ ДЕНЬ</div>
+    <h2>Спокойнее. Понятнее. Под контролем.</h2>
+    <p>Финансы, задачи и здоровье в одном месте — без лишних экранов.</p>
+  </div>
+  <div class="hero-actions">
+    <button class="quick" data-quick="buys">＋ Покупка</button>
+    <button class="quick" data-quick="tasks">＋ Дело</button>
+    <button class="quick" data-quick="gym">＋ Тренировка</button>
+    <button class="quick" data-quick="food">＋ Еда</button>
+  </div>
+</div>
 <section id="t-ov">
   <div class="tiles" id="tiles"></div>
   <div class="grid">
@@ -143,8 +150,3 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 <div id="searchOverlay" class="search-overlay" aria-hidden="true">
   <div class="search-dialog">
     <div class="search-top"><strong>Поиск по приложению</strong><button id="searchClose" class="icon-btn">✕</button></div>
-    <input id="globalSearch" class="search-input" placeholder="Покупка, дело, упражнение, продукт…" autocomplete="off">
-    <div id="searchResults" class="search-results"><div class="empty">Начните вводить запрос.</div></div>
-  </div>
-</div>
-<script>
