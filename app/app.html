@@ -830,7 +830,7 @@ function renderStreaks(){
   defs.forEach(([m,ico,label])=>{const set=streakSource(m),cur=currentStreak(set),best=bestStreak(set),c=el('div','streak-card');c.appendChild(el('div','emoji',ico));c.appendChild(el('div','num',cur+' дн.'));c.appendChild(el('div','label',label));c.appendChild(el('div','sub','рекорд '+best+' дн.'));box.appendChild(c)});
   const notes=[];defs.forEach(([m,ico,label])=>{const cur=currentStreak(streakSource(m));if(cur>=3)notes.push(ico+' '+label+': серия уже '+cur+' дн.');});
   if(!notes.length)notes.push('Пока нет длинных серий — это нормально. Сначала важнее регулярность данных, чем цифра серии.');
-  $('streakSummary').innerHTML=notes.map(x=>'<div class="pattern">'+esc(x)+'</div>').join('');
+  const summary=$('streakSummary');summary.innerHTML='';notes.forEach(x=>{summary.appendChild(el('div','pattern',x))});
 }
 function personalDayRows(){
   const start=new Date(Date.now()-59*864e5),rows=[];
