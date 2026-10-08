@@ -11,7 +11,7 @@ $('imp').onchange=()=>{const file=$('imp').files[0];if(!file)return;const fr=new
 /* data tab */
 $('cur').value=S.cur;$('cur').onchange=()=>{S.cur=$('cur').value;save();cloudSettings();renderAll()};
 $('clr').onclick=()=>{const b=$('clr');if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Нажмите ещё раз для подтверждения';setTimeout(()=>{b.dataset.arm='';b.textContent='Удалить все данные'},4000);return}
-  const old=[...S.items],oldT=[...S.tasks],oldG=[...S.gym],oldB=[...S.body],oldM=[...S.meals];S={...S,items:[],tasks:[],gym:[],body:[],meals:[],analysis:{},overall:null};save();b.dataset.arm='';b.textContent='Удалить все данные';renderAll();toast('Все данные удалены');
+  const old=[...S.items],oldT=[...S.tasks],oldG=[...S.gym],oldB=[...S.body],oldM=[...S.meals];S={...S,items:[],tasks:[],gym:[],body:[],meals:[],sleep:[],analysis:{},overall:null};save();b.dataset.arm='';b.textContent='Удалить все данные';renderAll();toast('Все данные удалены');
   if(db)(async()=>{for(const i of old)await cw(()=>db.doc(P+'/i_'+i.id).delete());for(const t of oldT)await cw(()=>db.doc(P+'/t_'+t.id).delete());for(const g of oldG)await cw(()=>db.doc(P+'/g_'+g.id).delete());for(const g of oldB)await cw(()=>db.doc(P+'/b_'+g.id).delete());for(const g of oldM)await cw(()=>db.doc(P+'/m_'+g.id).delete());await cw(()=>db.doc(P+'/analysis').set({map:{}}));await cw(()=>db.doc(P+'/settings').set({cur:S.cur,limit:S.limit||0,overall:null}))})()};
 
 /* cloud sync: personal private folder data/users/<id>/ */
