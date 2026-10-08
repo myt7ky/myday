@@ -1,112 +1,33 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Мой день</title>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Мой день — личный трекер</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#5b5bd6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Мой день">
-<style>
-:root{--bg:#f4f5f8;--card:#fff;--text:#1a1d23;--muted:#6b7280;--accent:#4f46e5;--good:#16a34a;--mid:#d97706;--bad:#dc2626;--border:#e5e7eb;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#181b22;--text:#eceef2;--muted:#9aa1ad;--accent:#818cf8;--good:#34d399;--mid:#fbbf24;--bad:#f87171;--border:#2a2f3a}}
-:root[data-theme="dark"]{--bg:#0f1115;--card:#181b22;--text:#eceef2;--muted:#9aa1ad;--accent:#818cf8;--good:#34d399;--mid:#fbbf24;--bad:#f87171;--border:#2a2f3a}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--border)}
-.hin{max-width:1000px;margin:0 auto;padding:12px 16px 0}
-h1{font-size:20px;margin:0 0 8px}
-nav{display:flex;gap:4px;overflow-x:auto}
-nav button{flex:1;white-space:nowrap;padding:10px 12px;border:0;border-bottom:3px solid transparent;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
-nav button.on{color:var(--accent);border-color:var(--accent)}
-main{max-width:1000px;margin:0 auto;padding:16px 16px 56px}
-#subnav{display:none;gap:6px;overflow-x:auto;padding:8px 0 10px}
-#subnav button{white-space:nowrap;padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer}
-#subnav button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-section{display:none}section.on{display:block}
-h2{font-size:16px;margin:0 0 10px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;align-items:start}
-.grid .card{margin:0}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
-.tile{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
-.tile b{display:block;font-size:22px;margin-top:2px}
-.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.fg .f2{grid-column:span 2}
-label{font-size:12px;color:var(--muted);display:block}
-input,select{width:100%;margin-top:4px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font:inherit;font-size:16px}
-button{font:inherit;cursor:pointer}
-.btn{padding:11px 16px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:600}
-.btn:disabled{opacity:.6;cursor:wait}
-.btn.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-.btn.dng{background:transparent;color:var(--bad);border:1px solid var(--bad)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.muted,.meta{color:var(--muted);font-size:13px}
-.bad{color:var(--bad)}.mid{color:var(--mid)}.good{color:var(--good)}
-.prog{height:12px;background:var(--border);border-radius:8px;overflow:hidden;margin:10px 0 6px}
-.prog i{display:block;height:100%;background:var(--good)}.prog i.warn{background:var(--mid)}.prog i.over{background:var(--bad)}
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text)}
-.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.chart{display:flex;align-items:flex-end;gap:6px;height:160px}
-.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
-.col .b{width:100%;background:var(--accent);border-radius:6px 6px 0 0;min-height:2px}.col .b.over{background:var(--bad)}
-.col .n{font-size:11px;color:var(--muted);margin-bottom:3px;white-space:nowrap}.col .x{font-size:11px;color:var(--muted);margin-top:4px}
-.bar{display:flex;align-items:center;gap:8px;font-size:14px;margin:7px 0}
-.bar .l{width:120px;flex:none}.bar .t{flex:1;background:var(--border);border-radius:6px;height:10px;overflow:hidden}
-.bar .t i{display:block;height:100%;background:var(--accent)}.bar .v{width:90px;text-align:right;flex:none;color:var(--muted)}
-.it{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.it:last-child{border:0}.it .nm{font-weight:600;word-break:break-word}.it .r{text-align:right;flex:none}
-.it .amt{font-weight:700}
-.ed{background:none;border:0;color:var(--accent);font-size:13px;padding:4px 0}
-.badge{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;border:1px solid currentColor;margin-left:6px}
-.an p{margin:4px 0;font-size:14px}
-.flt{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
-@media(max-width:560px){.flt{grid-template-columns:1fr}.fg .f2{grid-column:1/-1}}
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
-#modal.on{display:flex}#modal .card{width:100%;max-width:520px;max-height:90%;overflow:auto;margin:0}
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:30;max-width:90%}
-.rem{border-color:var(--bad)}
-.empty{text-align:center;color:var(--muted);padding:24px 0}
-
-/* ===== MyDay PWA redesign ===== */
-:root{--bg:#f4f6f8;--card:#fff;--text:#111827;--muted:#6b7280;--accent:#5b5bd6;--good:#16a34a;--mid:#d97706;--bad:#dc2626;--border:#e5e7eb;--shadow:0 12px 32px rgba(15,23,42,.055)}
-:root[data-theme="dark"]{--bg:#0d1117;--card:#151a21;--text:#eef2f7;--muted:#9aa4b2;--accent:#8b86ff;--good:#34d399;--mid:#fbbf24;--bad:#fb7185;--border:#2a3441;--shadow:0 12px 32px rgba(0,0,0,.22)}
-body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px)}
-.hin{max-width:1180px;padding:14px 18px 0}
-h1{font-size:22px;letter-spacing:-.03em;margin-bottom:10px}
-nav{gap:6px}
-nav button{border-radius:12px;border-bottom:0;padding:10px 12px}
-nav button.on{background:rgba(91,91,214,.12)}
-main{max-width:1180px;padding:18px 18px 70px}
-.card,.tile{box-shadow:var(--shadow)}
-.card{border-radius:18px}
-.tile{border-radius:15px}
-.btn{border-radius:12px}
-input,select{border-radius:12px}
-#subnav{max-width:1180px;padding:8px 18px 12px}
-#subnav button{border-radius:999px}
-#my-search-launch{position:absolute;right:18px;top:12px;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:12px;padding:8px 11px;cursor:pointer}
-#my-search-overlay{position:fixed;inset:0;background:rgba(2,6,23,.56);display:none;align-items:flex-start;justify-content:center;padding:10vh 16px 20px;z-index:100}
-#my-search-overlay.on{display:flex}
-#my-search-dialog{width:min(720px,100%);background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.24);padding:16px}
-#my-search-input{width:100%;margin:0;font-size:17px}
-.my-result{padding:12px;border:1px solid var(--border);border-radius:14px;margin-top:8px;background:var(--bg);cursor:pointer}
-.my-result strong{display:block}.my-result span{color:var(--muted);font-size:12px}
-@media(max-width:560px){#my-search-launch{position:static;margin:-2px 0 10px;width:100%;text-align:left}.hin{padding-bottom:8px}}
-
-</style>
-</head>
-<body>
-<header><div class="hin"><h1>◒ Мой день <span id="sync" class="muted" style="font-size:12px;font-weight:400"></span></h1>
-<nav id="nav"></nav><div id="subnav"></div></div></header>
-<main>
+<meta name="apple-mobile-web-app-title" content="Мой день"><style>
+:root{--bg:#f4f6f8;--panel:#ffffff;--panel2:#f8fafc;--text:#111827;--muted:#6b7280;--accent:#5b5bd6;--good:#16a34a;--mid:#d97706;--bad:#dc2626;--border:#e5e7eb;--shadow:0 18px 50px rgba(15,23,42,.07)}
+:root[data-theme="dark"]{--bg:#0d1117;--panel:#151a21;--panel2:#10151b;--text:#eef2f7;--muted:#9aa4b2;--accent:#8b86ff;--good:#34d399;--mid:#fbbf24;--bad:#fb7185;--border:#2a3441;--shadow:0 18px 50px rgba(0,0,0,.26)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}button,input,select{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:244px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;padding:18px 14px;border-right:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;gap:18px}.brand{padding:5px 10px 3px}.brand .mark{font-size:24px}.brand h1{font-size:18px;margin:7px 0 3px;letter-spacing:-.02em}.brand p{margin:0;color:var(--muted);font-size:12px}
+#nav{display:flex;flex-direction:column;gap:4px;min-height:0}#nav button{width:100%;border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:12px;text-align:left;font-weight:650;transition:.18s}#nav button:hover{background:var(--panel2);color:var(--text)}#nav button.on{background:rgba(91,91,214,.12);color:var(--accent)}
+.side-actions{margin-top:auto;display:grid;gap:8px}.side-actions .small-action{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 12px;border-radius:12px;text-align:left}
+.workspace{min-width:0}header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}.topbar{min-height:74px;max-width:1180px;margin:auto;padding:14px 26px;display:flex;align-items:center;gap:16px}.page-title{min-width:180px}.page-title .eyebrow,.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}.page-title h2{font-size:22px;margin:4px 0 0;letter-spacing:-.03em}.top-spacer{flex:1}.search-launch{width:min(340px,36vw);position:relative}.search-launch button{width:100%;padding:10px 12px 10px 38px;border:1px solid var(--border);background:var(--panel);color:var(--muted);border-radius:13px;text-align:left}.search-launch:before{content:'⌕';position:absolute;left:13px;top:7px;font-size:19px;color:var(--muted);z-index:1}.sync-pill{font-size:12px;color:var(--muted);padding:8px 10px;border-radius:12px;background:var(--panel)}
+#subnav{display:flex;gap:6px;max-width:1180px;margin:0 auto;padding:0 26px 12px;overflow-x:auto}#subnav button{border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:7px 12px;border-radius:999px;white-space:nowrap}#subnav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}section.on{display:block}
+.today-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:26px;border-radius:24px;margin-bottom:16px;background:linear-gradient(135deg,rgba(91,91,214,.15),rgba(124,58,237,.08) 48%,var(--panel) 100%);border:1px solid var(--border);box-shadow:var(--shadow)}.today-hero h2{margin:5px 0 6px;font-size:28px;letter-spacing:-.04em}.today-hero p{margin:0;color:var(--muted)}.hero-actions{display:grid;grid-template-columns:repeat(2,minmax(130px,1fr));gap:8px;min-width:280px}.quick{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-weight:650}.quick:hover{border-color:var(--accent);color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 5px 18px rgba(15,23,42,.025)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.grid .card{margin:0}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}.tile{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}.tile b{display:block;font-size:22px;margin-top:2px;letter-spacing:-.02em}h2{font-size:16px;margin:0 0 10px;letter-spacing:-.02em}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.fg .f2{grid-column:span 2}label{display:block;font-size:12px;color:var(--muted)}input,select{width:100%;margin-top:5px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:var(--panel2);color:var(--text);outline:none}input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,91,214,.12)}.btn{padding:11px 16px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:700}.btn.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}.btn.dng{background:transparent;color:var(--bad);border:1px solid var(--bad)}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted,.meta{color:var(--muted);font-size:13px}.bad{color:var(--bad)}.mid{color:var(--mid)}.good{color:var(--good)}
+.prog{height:12px;background:var(--border);border-radius:8px;overflow:hidden;margin:10px 0 6px}.prog i{display:block;height:100%;background:var(--good)}.prog i.warn{background:var(--mid)}.prog i.over{background:var(--bad)}.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text)}.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chart{display:flex;align-items:flex-end;gap:6px;height:160px}.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}.col .b{width:100%;background:var(--accent);border-radius:6px 6px 0 0;min-height:2px}.col .b.over{background:var(--bad)}.col .n,.col .x{font-size:11px;color:var(--muted);white-space:nowrap}.col .n{margin-bottom:3px}.col .x{margin-top:4px}.bar{display:flex;align-items:center;gap:8px;font-size:14px;margin:7px 0}.bar .l{width:120px;flex:none}.bar .t{flex:1;background:var(--border);border-radius:6px;height:10px;overflow:hidden}.bar .t i{display:block;height:100%;background:var(--accent)}.bar .v{width:90px;text-align:right;flex:none;color:var(--muted)}
+.it{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}.it:last-child{border:0}.it .nm{font-weight:650;word-break:break-word}.it .r{text-align:right;flex:none}.it .amt{font-weight:750}.ed{background:none;border:0;color:var(--accent);font-size:13px;padding:4px 0}.badge{display:inline-block;font-size:12px;font-weight:650;padding:1px 8px;border-radius:99px;border:1px solid currentColor;margin-left:6px}.an p{margin:5px 0;font-size:14px}.flt{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.settings-card{border-color:rgba(91,91,214,.25);background:linear-gradient(180deg,var(--panel),var(--panel2))}.settings-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.settings-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:rgba(91,91,214,.11)}.empty{text-align:center;color:var(--muted);padding:24px 0}.rem{border-color:var(--bad)}
+#modal{position:fixed;inset:0;background:rgba(2,6,23,.58);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}#modal.on{display:flex}#modal .card{width:100%;max-width:520px;max-height:90%;overflow:auto;margin:0}#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:50;max-width:90%}
+.search-overlay{position:fixed;inset:0;background:rgba(2,6,23,.56);display:none;align-items:flex-start;justify-content:center;padding:10vh 16px 20px;z-index:60}.search-overlay.on{display:flex}.search-dialog{width:min(720px,100%);background:var(--panel);border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.24);padding:16px}.search-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.icon-btn{border:0;background:transparent;color:var(--muted);font-size:18px}.search-input{font-size:16px;margin:0}.search-results{max-height:58vh;overflow:auto;margin-top:10px}.result{padding:12px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;background:var(--panel2)}.result strong{display:block}.result span{color:var(--muted);font-size:12px}
+@media(max-width:920px){.app{grid-template-columns:1fr}.sidebar{position:fixed;left:-260px;z-index:30;width:244px;transition:.22s;box-shadow:20px 0 50px rgba(0,0,0,.18)}body.nav-open .sidebar{left:0}.mobile-menu{display:block}.grid{grid-template-columns:1fr}.topbar{padding:12px 16px}#subnav{padding:0 16px 10px}main{padding:18px 16px 88px}.search-launch{width:auto;flex:1}}.mobile-menu{display:none;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:12px;padding:9px 11px}
+@media(max-width:620px){.today-hero{display:block;padding:20px}.today-hero h2{font-size:24px}.hero-actions{margin-top:16px;min-width:0}.top-spacer,.sync-pill{display:none}.flt{grid-template-columns:1fr}.fg .f2{grid-column:1/-1}}
+</style></head><body>
+<div class="app"><aside class="sidebar"><div class="brand"><div class="mark">◒</div><h1>Мой день</h1><p>Финансы · дела · здоровье</p></div><nav id="nav"></nav><div class="side-actions"><button class="small-action" id="sideSearch">⌕ Поиск <span style="float:right;color:var(--muted)">Ctrl K</span></button><button class="small-action" id="sideTheme">◐ Тема</button></div></aside><div class="workspace"><header><div class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="page-title"><div class="eyebrow">ЛИЧНЫЙ ТРЕКЕР</div><h2 id="pageTitle">Сегодня</h2></div><div class="top-spacer"></div><div class="search-launch"><button id="searchLaunch">Поиск по данным приложения…</button></div><span id="sync" class="sync-pill">📱 только это устройство</span></div><div id="subnav"></div></header><main>
 <div id="remind"></div>
 <section id="t-ov">
   <div class="tiles" id="tiles"></div>
@@ -197,3 +118,33 @@ input,select{border-radius:12px}
     <button class="btn" id="run">🔍 Проанализировать</button><div class="meta" id="aiNote" style="margin-top:8px"></div></div>
   <div id="aiOut"></div><div id="aiList"></div>
 </section>
+
+<section id="t-data">
+  <div class="card"><h2>Синхронизация</h2><div class="muted" id="syncTxt"></div></div>
+  <div class="card"><h2>Резервная копия (CSV)</h2>
+    <p class="muted" style="margin-top:0">Файл открывается в Excel и Google Таблицах. Из него же можно восстановить покупки.</p>
+    <div class="row"><button class="btn" id="exp">⬇️ Скачать CSV</button>
+    <button class="btn sec" id="impBtn">⬆️ Загрузить из CSV</button><input type="file" id="imp" accept=".csv,text/csv,text/plain" style="display:none"></div></div>
+  <div class="card"><h2>База продуктов (работает без ИИ)</h2>
+    <p class="muted" style="margin-top:0">Встроена база популярных продуктов на 100 г. Можно загрузить свою: CSV со столбцами <b>название;ккал;белок;жиры;углеводы</b> (необязательно: оценка;штука_г;синонимы через /). Свои записи важнее встроенных. Проще всего скачать встроенную базу, дополнить её в Excel и загрузить обратно.</p>
+    <div class="row"><button class="btn sec" id="dbTpl">⬇️ Скачать встроенную базу</button><button class="btn" id="dbImpBtn">⬆️ Загрузить свою базу</button><input type="file" id="dbImp" accept=".csv,text/csv,text/plain" style="display:none"></div>
+    <div class="meta" id="dbInfo" style="margin:8px 0"></div><button class="btn dng" id="dbClr">Удалить мою базу</button></div>
+  <div class="card"><h2>Полная копия (JSON)</h2><p class="muted" style="margin-top:0">Все покупки, дела, тренировки, вес, питание и ваша база. Подходит для резервной копии и переноса в автономную версию.</p>
+    <div class="row"><button class="btn" id="jExp">⬇️ Скачать копию</button><button class="btn sec" id="jImpBtn">⬆️ Загрузить копию</button><input type="file" id="jImp" accept=".json,application/json,text/plain" style="display:none"></div></div>
+  <div class="card"><h2>Экономия ИИ и офлайн</h2>
+    <label class="row" style="font-size:14px;color:var(--text)"><input type="checkbox" id="eco" style="width:auto;margin:0"> Не вызывать ИИ автоматически (оценка последствий дел)</label>
+    <p class="muted" style="margin-bottom:0">Без ИИ работают: покупки, графики, лимит, дела и напоминания, зал, вес, расчёт нормы, дневник питания по базе. ИИ нужен только для разборов и незнакомых продуктов. Эта страница открывается из интернета; полностью без сети работает отдельный файл-версия (скачайте её у Claude).</p></div>
+  <div class="card"><h2>Валюта</h2><select id="cur" style="max-width:200px"><option>RON</option><option>€</option><option>$</option><option>₽</option><option>₴</option><option>£</option></select></div>
+  <div class="card settings-card"><div class="settings-head"><div><h2>Внешний вид</h2><p class="muted">Тема и интерфейс спрятаны в данных, чтобы не перегружать навигацию.</p></div><span class="settings-icon">⚙️</span></div><div class="fg"><label>Тема интерфейса<select id="themeSelect"><option value="auto">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label></div></div>
+<div class="card"><h2>Опасная зона</h2><button class="btn dng" id="clr">Удалить все данные</button></div>
+</section>
+</main></div></div>
+<div id="modal"><div class="card"><h2>Редактировать покупку</h2><div class="fg" id="editFields"></div><div class="row" style="margin-top:14px"><button class="btn" id="eSave">Сохранить</button><button class="btn sec" id="eCancel">Отмена</button><button class="btn dng" id="eDel" style="margin-left:auto">Удалить</button></div></div></div><div id="toast"></div>
+<div id="searchOverlay" class="search-overlay" aria-hidden="true">
+  <div class="search-dialog">
+    <div class="search-top"><strong>Поиск по приложению</strong><button id="searchClose" class="icon-btn">✕</button></div>
+    <input id="globalSearch" class="search-input" placeholder="Покупка, дело, упражнение, продукт…" autocomplete="off">
+    <div id="searchResults" class="search-results"><div class="empty">Начните вводить запрос.</div></div>
+  </div>
+</div>
+<script>
