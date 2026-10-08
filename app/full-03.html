@@ -1,3 +1,31 @@
+$('impBtn').onclick=()=>$('imp').click();
+$('imp').onchange=()=>{const file=$('imp').files[0];if(!file)return;const fr=new FileReader();
+  fr.onload=()=>{try{const rows=parseCSV(String(fr.result)),H=rows[0].map(x=>x.trim().toLowerCase()),ix=n=>H.indexOf(n);
+    const iN=ix('название'),iA=ix('сумма');if(iN<0||iA<0){toast('Не нашёл столбцы «название» и «сумма»');return}
+    const before=S.items.length;let n=0;rows.slice(1,501).forEach(r=>{const name=(r[iN]||'').trim(),amount=parseFloat((r[iA]||'').replace(/\s/g,'').replace(',','.'));if(!name||!(amount>0))return;
+      const dt=(r[ix('дата')]||'').trim(),cat=(r[ix('категория')]||'').trim(),fe=(r[ix('оценка')]||'').trim();
+      S.items.push({id:Date.now()+n,name:name.slice(0,80),amount,date:/^\d{4}-\d\d-\d\d$/.test(dt)?dt:today(),cat:CATS.includes(cat)?cat:'Другое',feel:FEELS.includes(fe)?fe:'',why:((r[ix('зачем')]||'').trim()).slice(0,120)});n++});
+    save();renderAll();toast('Загружено покупок: '+n);cloudBulk(S.items.slice(before))}catch(e){toast('Не удалось прочитать файл')}$('imp').value=''};
+  fr.readAsText(file,'utf-8')};
+
+/* data tab */
+$('cur').value=S.cur;$('cur').onchange=()=>{S.cur=$('cur').value;save();cloudSettings();renderAll()};
+$('clr').onclick=()=>{const b=$('clr');if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Нажмите ещё раз для подтверждения';setTimeout(()=>{b.dataset.arm='';b.textContent='Удалить все данные'},4000);return}
+  const old=[...S.items],oldT=[...S.tasks],oldG=[...S.gym],oldB=[...S.body],oldM=[...S.meals];S={...S,items:[],tasks:[],gym:[],body:[],meals:[],analysis:{},overall:null};save();b.dataset.arm='';b.textContent='Удалить все данные';renderAll();toast('Все данные удалены');
+  if(db)(async()=>{for(const i of old)await cw(()=>db.doc(P+'/i_'+i.id).delete());for(const t of oldT)await cw(()=>db.doc(P+'/t_'+t.id).delete());for(const g of oldG)await cw(()=>db.doc(P+'/g_'+g.id).delete());for(const g of oldB)await cw(()=>db.doc(P+'/b_'+g.id).delete());for(const g of oldM)await cw(()=>db.doc(P+'/m_'+g.id).delete());await cw(()=>db.doc(P+'/analysis').set({map:{}}));await cw(()=>db.doc(P+'/settings').set({cur:S.cur,limit:S.limit||0,overall:null}))})()};
+
+/* cloud sync: personal private folder data/users/<id>/ */
+const cw=async f=>{try{await f()}catch(e){toast('Не удалось синхронизировать с облаком')}};
+const cloudItem=i=>db&&cw(()=>db.doc(P+'/i_'+i.id).set(i));
+const cloudDel=id=>db&&cw(()=>db.doc(P+'/i_'+id).delete());
+async function cloudBulk(list,quiet){if(!db)return;let k=0;for(const i of list){await cw(()=>db.doc(P+'/i_'+i.id).set(i));k++;if(!quiet&&list.length>5&&k%10===0)toast('Синхронизация: '+k+' из '+list.length)}}
+function cloudAnalysis(){if(!db)return;const keep=new Set([...S.items].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,150).map(i=>String(i.id)));const m={};Object.keys(S.analysis).forEach(k=>{if(keep.has(k))m[k]=S.analysis[k]});return cw(()=>db.doc(P+'/analysis').set({map:m}))}
+let stT;function cloudSettings(now){if(!db)return;clearTimeout(stT);const go=()=>cw(()=>db.doc(P+'/settings').set({cur:S.cur,limit:S.limit||0,overall:S.overall||null}));if(now)go();else stT=setTimeout(go,700)}
+function setSync(){$('sync').textContent=db?'☁️ синхронизация':'📱 только это устройство';
+  $('syncTxt').textContent=db?'Покупки хранятся в личной папке этого приложения, доступной только вам, и синхронизируются между устройствами, где вы открываете его под своим аккаунтом Claude.':'Синхронизация недоступна: данные хранятся только в браузере этого устройства. Откройте приложение в Claude под своим аккаунтом, чтобы включить её.'}
+function connect(){
+  db.collection(P).onSnapshot(snap=>{
+    const its=[],tks=[],gms=[],bds=[],mls=[];let st=null,an=null,pr=null,fdb=null;
     snap.docs.forEach(d=>{const x=d.data();if(!x)return;if(d.id.startsWith('i_'))its.push(x);else if(d.id.startsWith('t_'))tks.push(x);else if(d.id.startsWith('g_'))gms.push(x);else if(d.id.startsWith('b_'))bds.push(x);else if(d.id.startsWith('m_'))mls.push(x);else if(d.id==='profile')pr=x;else if(d.id==='fooddb')fdb=x;else if(d.id==='settings')st=x;else if(d.id==='analysis')an=x});
     if(!S.synced){S.synced=true;const have=new Set(its.map(i=>i.id)),up=S.items.filter(i=>!have.has(i.id));
       if(up.length){its.push(...up);cloudBulk(up,true)}
@@ -122,79 +150,3 @@ function renderGym(){
   const tips=[],sess=new Set(s28.map(g=>g.date)).size/4,tot=Object.values(gr).reduce((a,b)=>a+b,0);
   if(S.gym.length){if(sess<2.5)tips.push('Тренировок в среднем '+sess.toFixed(1)+' в неделю. Для набора массы хватит 3–4, главное регулярность.');
     if(tot&&(gr['Ноги']||0)/tot<0.2)tips.push('Ноги получают меньше 20% подходов. Добавьте приседания или жим ногами: это самая крупная группа мышц.');
-    if(tot&&(gr['Спина']||0)<(gr['Грудь']||0)*0.7)tips.push('Спины заметно меньше, чем груди. Добавьте тяги: это защищает плечи и осанку.')}
-  const byEx={};S.gym.forEach(g=>{if(g.w)(byEx[g.ex]=byEx[g.ex]||[]).push(g)});
-  Object.entries(byEx).filter(([,a])=>new Set(a.map(x=>x.date)).size>=2).slice(0,4).forEach(([k,a])=>{a.sort((x,y)=>x.date.localeCompare(y.date));const f=a[0],l=a[a.length-1];tips.push('Прогресс, '+k+': '+f.w+' → '+l.w+' кг (расчётный максимум на 1 повтор '+Math.round(f.w*(1+f.reps/30))+' → '+Math.round(l.w*(1+l.reps/30))+' кг)')});
-  tips.forEach(t=>{const p=el('p','meta','💡 '+t);G.appendChild(p)});
-  const J=$('gList');J.innerHTML='';const by={};S.gym.forEach(g=>(by[g.date]=by[g.date]||[]).push(g));
-  Object.keys(by).sort().reverse().slice(0,30).forEach(dt=>{J.appendChild(el('div','nm',dmy(dt)));by[dt].forEach(g=>{const r=el('div','it'),l=el('div');l.appendChild(el('div',null,g.ex));
-    l.appendChild(el('div','meta',g.sets+' × '+g.reps+(g.w?' × '+g.w+' кг':' (свой вес)')+' · '+grp(g.ex)));
-    r.appendChild(l);r.appendChild(delBtn(()=>{S.gym=S.gym.filter(x=>x.id!==g.id);save();gdl('g_',g.id);renderAll()}));J.appendChild(r)})});
-  if(!S.gym.length)J.appendChild(el('div','empty','Журнал пуст'));
-}
-
-/* body */
-$('b_date').value=today();
-$('bAdd').onclick=()=>{const w=num('b_w');if(!(w>20&&w<400)){toast('Укажите вес в кг');return}
-  const b={id:Date.now(),date:$('b_date').value||today(),w,waist:num('b_waist')||0};S.body.push(b);save();gcl('b_',b);$('b_w').value='';$('b_waist').value='';renderAll();toast('Записано')};
-function targets(){const L=lastW(),h=parseFloat(S.prof.h),a=parseFloat(S.prof.age);if(!L||!(h>0)||!(a>0))return null;
-  const bmr=10*L.w+6.25*h-5*a+(S.prof.sex==='ж'?-161:5),tdee=bmr*parseFloat(S.prof.act||1.55),g=S.prof.goal;
-  const kcal=g==='набор массы'?tdee+400:g==='похудение'?Math.max(tdee-400,bmr):tdee;
-  const pr=Math.round(L.w*(g==='похудение'?2:1.8)),fat=Math.round(L.w*0.9),carb=Math.max(0,Math.round((kcal-pr*4-fat*9)/4));
-  return{w:L.w,bmr:Math.round(bmr),tdee:Math.round(tdee),kcal:Math.round(kcal),pr,fat,carb}}
-function trend(){const s=[...S.body].sort((a,b)=>a.date.localeCompare(b.date)),l=s[s.length-1];if(!l)return null;
-  const f=s.find(x=>x!==l&&days(x.date,l.date)<=35);if(!f)return null;const d=days(f.date,l.date);if(d<7)return null;return{d:Math.round(d),dw:l.w-f.w,pw:(l.w-f.w)/d*7}}
-function renderBody(){const L=lastW(),tr=trend(),h=parseFloat(S.prof.h),t=[['Вес',L?L.w+' кг':'—']];
-  if(L&&h>0){const b=L.w/((h/100)**2);t.push(['ИМТ',b.toFixed(1)+' ('+(b<18.5?'ниже нормы':b<25?'норма':b<30?'выше нормы':'ожирение')+')'])}
-  if(tr)t.push(['За '+tr.d+' дн.',(tr.dw>0?'+':'')+tr.dw.toFixed(1)+' кг']);
-  const wl=S.body.filter(b=>b.waist).sort((a,b)=>a.date.localeCompare(b.date)).pop();if(wl)t.push(['Талия',wl.waist+' см']);
-  tiles($('bTiles'),t);
-  const adv=$('bAdvice');adv.innerHTML='';
-  if(tr&&S.prof.goal==='набор массы'){const w=tr.pw;adv.appendChild(el('p',w<0.1?'mid':w>0.7?'bad':'good',w<0.1?'Масса почти не растёт ('+w.toFixed(2)+' кг/нед). Добавьте примерно 200 ккал в день и понаблюдайте ещё 2 недели.':w>0.7?'Набор слишком быстрый ('+w.toFixed(2)+' кг/нед): часть уйдёт в жир. Уберите примерно 200 ккал.':'Темп набора в норме: '+w.toFixed(2)+' кг/нед.'))}
-  else if(tr&&S.prof.goal==='похудение'){const w=tr.pw;adv.appendChild(el('p',w>-0.2?'mid':w<-1?'bad':'good',w>-0.2?'Вес почти не снижается ('+w.toFixed(2)+' кг/нед).':w<-1?'Вес падает слишком быстро ('+w.toFixed(2)+' кг/нед): риск потери мышц. Увеличьте калории.':'Темп снижения в норме: '+w.toFixed(2)+' кг/нед.'))}
-  const s=[...S.body].sort((a,b)=>a.date.localeCompare(b.date)).slice(-12),C=$('bChart');C.innerHTML='';
-  if(s.length>1)C.appendChild(bars(s.map(x=>x.w),s.map(x=>x.date.slice(8,10)+'.'+x.date.slice(5,7)),true));
-  const B=$('bList');B.innerHTML='';[...S.body].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).forEach(b=>{const r=el('div','it');r.appendChild(el('div',null,dmy(b.date)+' · '+b.w+' кг'+(b.waist?' · талия '+b.waist+' см':'')));
-    r.appendChild(delBtn(()=>{S.body=S.body.filter(x=>x.id!==b.id);save();gdl('b_',b.id);renderAll()}));B.appendChild(r)});
-}
-
-/* food */
-const JUNK=/макдон|mcdonald|kfc|бургер|пицц|доставк|чипс|кола|coca|pepsi|энергет|конфет|шоколад|сладк|печень|мороженое|фастфуд/i;
-const PROT=/кур|яйц|творог|рыб|говяд|свинин|мяс|тунец|лосос|молок|йогурт|кефир|сыр|чечевиц|фасол|индейк|протеин/i;
-const foods=()=>{const d=ds(new Date(Date.now()-29*864e5));return S.items.filter(i=>i.cat==='Еда и кафе'&&i.date>=d)};
-function renderFood(){const T=targets(),box=$('fTargets');box.innerHTML='';
-  if(!T)box.appendChild(el('div','empty','Укажите рост и возраст и запишите вес во вкладке «Форма», чтобы рассчитать норму.'));
-  else{const w=el('div','tiles');box.appendChild(w);tiles(w,[['Калорий в день',T.kcal],['Белок, г',T.pr],['Жиры, г',T.fat],['Углеводы, г',T.carb]]);
-    box.appendChild(el('div','meta','Расчёт: обмен покоя ≈ '+T.bmr+' ккал, с учётом активности ≈ '+T.tdee+' ккал. Цель: '+S.prof.goal+'. Это оценка по формуле, а не медицинская рекомендация.'))}
-  const gd=$('fGuide');gd.innerHTML='';
-  ['Профицит калорий 300–500 в день даёт набор 0.25–0.5 кг в неделю. Быстрее значит больше жира.','Белок 1.6–2.2 г на кг веса, разделите на 3–5 приёмов по 25–40 г.','Углеводы основа энергии для тренировок: рис, гречка, овсянка, картофель, макароны, хлеб, фрукты.','Жиры 0.8–1 г на кг: яйца, орехи, оливковое масло, жирная рыба. Не опускайтесь ниже.','Недорогие источники белка: яйца, куриное бедро и грудка, творог, кефир, консервированный тунец, чечевица, фасоль, молоко.','Если сложно съесть норму: добавляйте молоко, арахисовую пасту, орехи, сухофрукты, масло в готовые блюда, смузи.','Сон 7–9 часов, достаточно воды. Креатин моногидрат 3–5 г в день самая изученная добавка (обсудите с врачом, если есть проблемы с почками).','Взвешивайтесь утром 1–2 раза в неделю и смотрите на среднее за 2–3 недели. Нет роста: +200 ккал.'].forEach(x=>gd.appendChild(el('p',null,'• '+x)));
-  const fd=foods(),fb=$('fBuys');fb.innerHTML='';
-  if(!fd.length){fb.appendChild(el('div','empty','За 30 дней нет покупок в категории «Еда и кафе». Записывайте продукты во вкладке «Покупки» (например «курица 1 кг», «рис»), чтобы получать советы.'));return}
-  const tot=fd.reduce((s,i)=>s+i.amount,0),pr=fd.filter(i=>PROT.test(i.name)),jk=fd.filter(i=>JUNK.test(i.name));
-  fb.appendChild(el('div','meta','Всего '+fmt(tot)+' · покупок: '+fd.length+' · белковых продуктов: '+pr.length+' · фастфуд и сладкое: '+jk.length+' ('+fmt(jk.reduce((s,i)=>s+i.amount,0))+')'));
-  [...fd].sort((a,b)=>b.amount-a.amount).slice(0,8).forEach(i=>{const r=el('div','it');r.appendChild(el('div',null,i.name+(JUNK.test(i.name)?' ⚠️':PROT.test(i.name)?' 💪':'')));r.appendChild(el('div','amt',fmt(i.amount)));fb.appendChild(r)});
-  if(S.prof.goal==='набор массы'&&!pr.length)fb.appendChild(el('p','mid','Среди покупок нет явных источников белка. Для набора массы добавьте яйца, курицу, творог, рыбу или бобовые.'));
-}
-
-/* AI helpers */
-const sec=(o,h,x,c)=>{if(!x||(Array.isArray(x)&&!x.length))return;o.appendChild(el('p','nm',h));(Array.isArray(x)?x:[x]).forEach(v=>o.appendChild(el('p',c||null,'• '+(typeof v==='string'?v:Object.values(v).join(' — ')))))};
-const drawer=m=>(r,o)=>m.forEach(([k,h])=>sec(o,h,r[k]));
-async function askAI(btn,label,prompt,out,draw){
-  if(!sample){try{sample=await claude.use('sample')}catch(e){}}
-  if(!sample){toast('ИИ недоступен в этом окне. Откройте страницу в Claude.');return}
-  btn.disabled=true;btn.textContent='Анализирую…';
-  try{const r=await sample.json(prompt,{cache:false});out.innerHTML='';draw(r,out)}
-  catch(e){toast(e&&e.code==='not_granted'?'Нужно разрешить доступ к ИИ':'Не удалось получить ответ, попробуйте ещё раз')}
-  btn.disabled=false;btn.textContent=label}
-const ctx=()=>'Профиль: '+JSON.stringify(S.prof)+'. Вес тела (последние записи): '+JSON.stringify([...S.body].sort((a,b)=>a.date.localeCompare(b.date)).slice(-15).map(b=>({дата:b.date,кг:b.w,талия:b.waist||null})))+'. Норма: '+JSON.stringify(targets())+'. Динамика: '+JSON.stringify(trend())+'.';
-$('gAI').onclick=()=>{if(!S.gym.length){toast('Сначала запишите тренировки');return}
-  const data=[...S.gym].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,80).map(g=>({дата:g.date,упражнение:g.ex,подходы:g.sets,повторы:g.reps,вес_кг:g.w}));
-  askAI($('gAI'),'🏋️ Анализ тренировок с ИИ','Ты — опытный тренер по силовым тренировкам. Проанализируй тренировки пользователя (JSON, вес 0 = собственный вес). '+ctx()+' Оцени объём, частоту, баланс групп мышц и прогрессию нагрузки. Дай конкретные советы по технике названных упражнений, по прогрессии и план на следующую неделю. Прямо и по делу. Если данных мало, скажи об этом. Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"summary":"...","issues":["..."],"technique":["упражнение: совет"],"progression":["..."],"next_week":"..."}. Тренировки: '+JSON.stringify(data),
-  $('gAIout'),drawer([['summary','Итог'],['issues','Что не так'],['technique','Техника и советы'],['progression','Как прогрессировать'],['next_week','План на неделю']]))};
-$('bAI').onclick=()=>{if(!S.body.length){toast('Сначала запишите вес');return}
-  askAI($('bAI'),'📊 Анализ формы с ИИ','Ты — спортивный консультант. Проанализируй форму пользователя. '+ctx()+' Тренировок за 28 дней: '+new Set(S.gym.filter(g=>g.date>=ds(new Date(Date.now()-27*864e5))).map(g=>g.date)).size+'. Оцени динамику веса относительно цели, реалистичный темп, что поправить в питании и тренировках. Если цифры выглядят опасно (очень низкий ИМТ, резкая потеря веса), порекомендуй обратиться к врачу. Это не медицинская консультация. Пиши по-русски, конкретно. Верни ТОЛЬКО JSON без markdown: {"summary":"...","observations":["..."],"recommendations":["..."],"watch_out":["..."]}.',
-  $('bAIout'),drawer([['summary','Итог'],['observations','Наблюдения'],['recommendations','Что делать'],['watch_out','На что обратить внимание']]))};
-$('fAI').onclick=()=>{const fd=foods().map(i=>({дата:i.date,название:i.name,сумма:i.amount}));
-  askAI($('fAI'),'🍳 Что приготовить и что купить','Ты — диетолог-практик и повар. Цель пользователя и норма указаны ниже. '+ctx()+' Тренировок в неделю: '+(S.prof.days||'не указано')+'. Продукты и еда, которые он покупал за 30 дней, валюта '+S.cur+' (JSON): '+JSON.stringify(fd)+'. Задача: 1) оцени, насколько покупки соответствуют цели (белок, калории, лишнее); 2) предложи 3-4 блюда, которые можно приготовить ИЗ ТОГО, что он уже покупает (с ингредиентами и пользой); 3) что докупить недорого для выполнения нормы белка и калорий (учитывай его бюджет по суммам); 4) что заменить из невыгодных покупок. Если покупок еды нет, предложи базовый недорогой набор под цель. Это не медицинская рекомендация. Пиши по-русски. Верни ТОЛЬКО JSON без markdown: {"assessment":"...","cook":[{"title":"...","ingredients":"...","why":"..."}],"buy":[{"item":"...","why":"..."}],"swap":[{"from":"...","to":"..."}],"tips":["..."]}.',
-  $('fAIout'),drawer([['assessment','Оценка покупок'],['cook','Что приготовить'],['buy','Что докупить'],['swap','Чем заменить'],['tips','Советы']]))};
-fillProf();
