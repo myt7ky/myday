@@ -23,7 +23,7 @@
     }
   }catch(e){}
   const parts=["./app/app.html"];
-  const v="22";
+  const v="23";
   try{
     const xs=await Promise.all(parts.map(x=>fetch(x+"?v="+v,{cache:"no-store"})));
     for(let i=0;i<xs.length;i++) if(!xs[i].ok) throw new Error("Не загрузился модуль "+parts[i]);
