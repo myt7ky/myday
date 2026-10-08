@@ -28,7 +28,7 @@
     const xs=await Promise.all(parts.map(x=>fetch(x+"?v="+v,{cache:"no-store"})));
     for(let i=0;i<xs.length;i++) if(!xs[i].ok) throw new Error("Не загрузился модуль "+parts[i]);
     const html=(await Promise.all(xs.map(x=>x.text()))).join("");
-    if(!html.includes('id="nav"')||!html.includes('id="ov"')) throw new Error("Модули приложения повреждены");
+    if(!html.includes('id="nav"')||!html.includes('id="t-ov"')) throw new Error("Модули приложения повреждены");
     document.open();document.write(html);document.close();
   }catch(e){
     document.body.innerHTML="<div style=\"padding:24px;font-family:system-ui\"><h2>Ошибка загрузки</h2><p>"+String(e.message||e)+"</p><button onclick=\"location.reload()\">Повторить</button></div>";
