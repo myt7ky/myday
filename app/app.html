@@ -412,32 +412,86 @@ function initSmartUI(){
 const sumWeek=()=>{const w=weekStart(today());return S.items.filter(i=>weekStart(i.date)===w).reduce((s,i)=>s+i.amount,0)};
 function renderDayBrief(){
   const box=$('dayBriefOut');if(!box)return;box.innerHTML='';
-  const hour=new Date().getHours(), evening=hour>=18;
+  const hour=new Date().getHours(), evening=hour>=18, todayStr=today();
   $('dayBriefTitle').textContent=evening?'🌙 Итоги дня':'☀️ Мой день';
-  const r=sleepTrainingReadiness(), todayStr=today();
-  const open=S.tasks.filter(t=>!t.done), due=S.tasks.filter(t=>!t.done&&t.due&&t.due.slice(0,10)===todayStr), done=S.tasks.filter(t=>t.done);
-  const meals=S.meals.filter(m=>m.date===todayStr), T=targets();
-  const kcal=meals.reduce((a,m)=>a+(Number(m.kcal)||0),0), protein=meals.reduce((a,m)=>a+(Number(m.p)||0),0);
-  const spend=S.items.filter(i=>i.date===todayStr).reduce((a,i)=>a+i.amount,0);
-  let score=100, notes=[];
-  if(r.score!=null){score=Math.round(score*.35+65);if(r.score<60){score-=10;notes.push('Сон слабый — сегодня лучше беречь восстановление.')}else if(r.score<80)notes.push('Сон нормальный, но без максимальной нагрузки.');else notes.push('Сон хороший — организм готов к обычной тренировке.')}
-  if(T&&meals.length){const pk=protein/(T.pr||1);if(pk<.6){score-=8;notes.push('Белка пока мало относительно дневной цели.')}else if(pk>=.9)notes.push('Белковая цель почти выполнена.')}
-  if(due.length>2){score-=5;notes.push('На сегодня осталось '+due.length+' дел — выберите 1–2 главных.')}
-  score=Math.max(0,Math.min(100,score));
-  const title=evening?(score>=80?'День прошёл хорошо':'День можно завершить спокойнее'):(score>=80?'Хороший старт дня':score>=60?'День требует внимания':'Сегодня лучше не перегружаться');
-  box.appendChild(el('div','nm',title+' · '+score+'/100'));
-  notes.slice(0,3).forEach(x=>box.appendChild(el('p',null,'• '+x)));
-  const stats=[];
-  stats.push('😴 Сон: '+(r.score==null?'нет записи':sleepHM(r.lastDur)));
-  stats.push('💪 Тренировка: '+(r.score==null?'оценка появится после сна':r.score+'/100'));
-  stats.push('✅ Дела: '+done.length+' выполнено всего · '+open.length+' открыто'+(due.length?' · '+due.length+' на сегодня':''));
-  stats.push('🍽️ Питание: '+(meals.length?(Math.round(kcal)+' ккал'+(T?' · белок '+Math.round(protein)+'/'+T.pr+' г':'')):'нет записей сегодня'));
-  stats.push('💰 Траты сегодня: '+fmt(spend));
-  stats.forEach(x=>box.appendChild(el('p','meta',x)));
-  if(evening)box.appendChild(el('p','meta','🌙 Перед сном: отметьте сон позже — завтра готовность к тренировке пересчитается автоматически.'));
-  else box.appendChild(el('p','meta','🎯 Фокус: '+(due.length?due.slice(0,2).map(t=>t.title).join(' · '):'выберите главное дело на сегодня')));
-}
 
+  const sleep=sleepTrainingReadiness();
+  const open=S.tasks.filter(t=>!t.done);
+  const overdue=open.filter(isOver);
+  const dueToday=open.filter(t=>t.due&&t.due.slice(0,10)===todayStr).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+  const doneToday=S.tasks.filter(t=>t.done&&t.doneAt&&String(t.doneAt).slice(0,10)===todayStr);
+  const meals=S.meals.filter(m=>m.date===todayStr);
+  const kcal=meals.reduce((a,m)=>a+(Number(m.kcal)||0),0);
+  const protein=meals.reduce((a,m)=>a+(Number(m.p)||0),0);
+  const T=targets();
+  const spendToday=S.items.filter(i=>i.date===todayStr).reduce((a,i)=>a+i.amount,0);
+  const weekSpent=sumWeek();
+  const weekLeft=S.limit?Math.max(0,S.limit-weekSpent):null;
+  const daysLeft=Math.max(1,7-((new Date().getDay()+6)%7));
+  const dailyBudget=S.limit?Math.max(0,weekLeft/daysLeft):null;
+  const gymToday=S.gym.filter(g=>g.date===todayStr);
+  const gym7=S.gym.filter(g=>g.date>=ds(new Date(Date.now()-6*864e5)));
+  const weightTrend=trend();
+
+  const header=el('div','nm');
+  if(evening){
+    const good=doneToday.length>0&&dueToday.length===0&&(!S.limit||weekSpent<=S.limit)&&(sleep.score==null||sleep.score>=60);
+    header.textContent=good?'✅ День завершён хорошо':'🟠 День есть что улучшить';
+  }else{
+    header.textContent=sleep.score==null?'☀️ Начните с главного':'☀️ План дня готов';
+  }
+  box.appendChild(header);
+
+  if(!evening){
+    const focus=el('div','card');
+    focus.appendChild(el('div','nm','🎯 Что важно сегодня'));
+    if(overdue.length)focus.appendChild(el('p','bad','1. Сначала закройте просроченное: '+overdue.slice(0,2).map(t=>t.title).join(' · ')));
+    else if(dueToday.length)focus.appendChild(el('p','mid','1. Главное дело: '+dueToday[0].title));
+    else focus.appendChild(el('p','meta','1. Просроченных и срочных дел нет — выберите одну важную задачу и сделайте её до обеда.'));
+    if(sleep.score!=null){
+      const workout=sleep.score>=80?'обычную тренировку':sleep.score>=60?'умеренную тренировку без отказа':'лёгкую тренировку или восстановление';
+      focus.appendChild(el('p',sleep.score<60?'bad':sleep.score<80?'mid':'good','2. 💤 Сон '+sleep.lastDur?'':'' ));
+      focus.lastChild.textContent='2. 💤 Сон '+sleepHM(sleep.lastDur)+' → '+workout+'.';
+    }else focus.appendChild(el('p','meta','2. 💤 Запишите сон после ночи — тогда появится точная рекомендация по нагрузке.'));
+    if(T)focus.appendChild(el('p','meta','3. 🍽️ Цель дня: '+T.kcal+' ккал · '+T.pr+' г белка.'));
+    else focus.appendChild(el('p','meta','3. 🍽️ Заполните «Форма», чтобы получить персональные цели питания.'));
+    box.appendChild(focus);
+  }else{
+    const recap=el('div','card');
+    recap.appendChild(el('div','nm','📋 Что получилось'));
+    recap.appendChild(el('p',doneToday.length?'good':'mid','✅ Дел сегодня закрыто: '+doneToday.length+(dueToday.length?' · осталось на сегодня: '+dueToday.length:' · срочных дел не осталось.')));
+    recap.appendChild(el('p','meta','💪 Тренировка сегодня: '+(gymToday.length?'есть, записей '+gymToday.length:'нет')+' · за 7 дней: '+new Set(gym7.map(g=>g.date)).size+' дней.'));
+    if(T&&meals.length){
+      const kp=Math.round(kcal/T.kcal*100),pp=Math.round(protein/T.pr*100);
+      recap.appendChild(el('p',kp>=90?'good':kp<60?'mid':'meta','🍽️ Питание: '+Math.round(kcal)+'/'+T.kcal+' ккал ('+kp+'%) · белок '+Math.round(protein)+'/'+T.pr+' г ('+pp+'%).'));
+    }else recap.appendChild(el('p','meta','🍽️ Питание: записей сегодня '+meals.length+'.'));
+    recap.appendChild(el('p',S.limit&&weekSpent>S.limit?'bad':S.limit&&weekSpent>S.limit*.8?'mid':'meta','💰 Траты сегодня: '+fmt(spendToday)+(S.limit?' · неделя '+fmt(weekSpent)+' из '+fmt(S.limit):' · недельный лимит не задан')+'.'));
+    if(weightTrend)recap.appendChild(el('p','meta','⚖️ Динамика веса: '+(weightTrend.dw>0?'+':'')+weightTrend.dw.toFixed(1)+' кг за '+weightTrend.d+' дней.'));
+    box.appendChild(recap);
+    const tomorrow=el('div','card');
+    tomorrow.appendChild(el('div','nm','🌅 Что подготовить на завтра'));
+    if(dueToday.length)tomorrow.appendChild(el('p','mid','Перенесите или закройте '+dueToday.length+' незавершенных дел, чтобы не создавать снежный ком.'));
+    else if(open.length)tomorrow.appendChild(el('p','meta','На завтра уже есть '+open.length+' открытых дел. Выберите максимум 1–3 главных.'));
+    else tomorrow.appendChild(el('p','good','Открытых дел нет — хороший момент не добавлять лишнего.'));
+    if(sleep.score!=null){
+      const workout=sleep.score>=80?'полноценную тренировку':sleep.score>=60?'умеренную тренировку':'восстановление';
+      tomorrow.appendChild(el('p',sleep.score<60?'mid':'meta','💪 По последнему сну завтра ориентир: '+workout+'.'));
+    }
+    tomorrow.appendChild(el('p','meta','🌙 Перед сном запишите качество сна — утром рекомендация пересчитается автоматически.'));
+    box.appendChild(tomorrow);
+  }
+
+  const mini=el('div','tiles');
+  const readiness=sleep.score==null?'—':sleep.score+'/100';
+  const food=T?(Math.round(kcal)+' / '+T.kcal+' ккал'):(meals.length?Math.round(kcal)+' ккал':'—');
+  const taskText=evening?(doneToday.length+' сделано'):(open.length+' открыто');
+  tiles(mini,[['Сон → тренировка',readiness],['Дела',taskText],['Питание',food],['Траты сегодня',fmt(spendToday)]]);
+  box.appendChild(mini);
+
+  if(S.limit&&dailyBudget!=null){
+    box.appendChild(el('p',dailyBudget>0?'meta':'bad','💰 Бюджетный ориентир: можно тратить примерно '+fmt(dailyBudget)+' в день до конца недели. Уже потрачено '+fmt(weekSpent)+'.'));
+  }
+}
 function renderOv(){
   initSmartUI();
   renderDayBrief();
@@ -604,7 +658,7 @@ function taskRow(t){const r=el('div','it'),l=el('div'),rt=el('div','r');
   const over=isOver(t);l.appendChild(el('div',over?'meta bad':'meta',t.done?'Выполнено':dueTxt(t.due)+(over?' · '+overTxt(t.due):'')+' · '+t.prio));
   if(!t.done)l.appendChild(el('div','meta mid','⚠️ Если отложить: '+(t.risk||localRisk(t))));
   const b=(x,f)=>{const e=el('button','ed',x);e.onclick=f;rt.appendChild(e);rt.appendChild(document.createElement('br'));return e};
-  b(t.done?'↩ Вернуть':'✓ Сделано',()=>{t.done=!t.done;upd(t)});
+  b(t.done?'↩ Вернуть':'✓ Сделано',()=>{t.done=!t.done;if(t.done)t.doneAt=nowLocal(0);else delete t.doneAt;upd(t)});
   if(!t.done)b('✎ Изменить',()=>{tEdit=t.id;$('t_title').value=t.title;$('t_due').value=t.due||'';$('t_prio').value=t.prio;$('tAdd').textContent='Сохранить';$('tCancel').style.display='';$('tTitle').textContent='Редактировать дело';window.scrollTo(0,0)});
   const d=b('× Удалить',()=>{if(!d.dataset.a){d.dataset.a='1';d.textContent='Точно?';return}S.tasks=S.tasks.filter(x=>x.id!==t.id);save();cloudTaskDel(t.id);renderAll()});
   r.appendChild(l);r.appendChild(rt);return r}
@@ -623,7 +677,7 @@ function renderRemind(){const box=$('remind');box.innerHTML='';
     c.appendChild(el('div',o?'meta bad':'meta',o?overTxt(t.due):'скоро: '+dueTxt(t.due)));
     c.appendChild(el('div','meta mid','Если отложить: '+(t.risk||localRisk(t))));
     const row=el('div','row');row.style.marginTop='8px';
-    const a=el('button','btn','✓ Сделано');a.onclick=()=>{t.done=true;upd(t)};
+    const a=el('button','btn','✓ Сделано');a.onclick=()=>{t.done=true;t.doneAt=nowLocal(0);upd(t)};
     const z=el('button','btn sec','+1 час');z.onclick=()=>{t.due=nowLocal(36e5);upd(t)};
     row.appendChild(a);row.appendChild(z);c.appendChild(row);box.appendChild(c)});
   if(L.length>3)box.appendChild(el('div','meta','…и ещё дел с горящим сроком: '+(L.length-3)))}
