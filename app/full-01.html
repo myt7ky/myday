@@ -22,7 +22,7 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 @media(max-width:620px){.today-hero{display:block;padding:20px}.today-hero h2{font-size:24px}.hero-actions{margin-top:16px;min-width:0}.top-spacer,.sync-pill{display:none}.flt{grid-template-columns:1fr}.fg .f2{grid-column:1/-1}}
 /* mobile navigation fix */
 @media(max-width:920px){.mobile-menu{display:grid!important;place-items:center;flex:0 0 auto;width:42px;height:42px;padding:0}.topbar{gap:8px;padding:10px 12px;min-height:62px}.page-title{min-width:0;flex:1}.page-title h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.search-launch{flex:0 0 auto;width:42px}.search-launch button{width:42px;height:42px;padding:0;font-size:0;text-align:center}.search-launch button:after{content:'⌕';font-size:21px;color:var(--muted)}.search-launch:before{display:none}#subnav{max-width:none;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}#subnav::-webkit-scrollbar{display:none}}
-<style id="mobile-polish">
+
 @media(max-width:920px){
   body{padding-bottom:76px}
   .workspace{min-width:0}
@@ -64,7 +64,7 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
   .mobile-bottom-nav button.more-open{background:var(--panel2);color:var(--text)}
 }
 @media(min-width:921px){.mobile-bottom-nav{display:none!important}}
-</style></style></head><body>
+</style></head><body>
 <div class="app"><aside class="sidebar"><div class="brand"><div class="mark">◒</div><h1>Мой день</h1><p>Финансы · дела · здоровье</p></div><nav id="nav"></nav><div class="side-actions"><button class="small-action" id="sideSearch">⌕ Поиск <span style="float:right;color:var(--muted)">Ctrl K</span></button><button class="small-action" id="sideTheme">◐ Тема</button></div></aside><div class="workspace"><header><div class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="page-title"><div class="eyebrow">ЛИЧНЫЙ ТРЕКЕР</div><h2 id="pageTitle">Сегодня</h2></div><div class="top-spacer"></div><div class="search-launch"><button id="searchLaunch">Поиск по данным приложения…</button></div><span id="sync" class="sync-pill">📱 только это устройство</span></div><div id="subnav"></div></header><main>
 <div id="remind"></div>
 <section id="t-ov">
@@ -178,6 +178,13 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
 </section>
 </main></div></div>
 <div id="modal"><div class="card"><h2>Редактировать покупку</h2><div class="fg" id="editFields"></div><div class="row" style="margin-top:14px"><button class="btn" id="eSave">Сохранить</button><button class="btn sec" id="eCancel">Отмена</button><button class="btn dng" id="eDel" style="margin-left:auto">Удалить</button></div></div></div><div id="toast"></div>
+<nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Основная навигация">
+  <button type="button" data-mobile-group="0"><span class="mi">⌂</span><span>Главная</span></button>
+  <button type="button" data-mobile-group="1"><span class="mi">◷</span><span>Деньги</span></button>
+  <button type="button" data-mobile-group="2"><span class="mi">✓</span><span>Дела</span></button>
+  <button type="button" data-mobile-group="3"><span class="mi">♡</span><span>Здоровье</span></button>
+  <button type="button" data-mobile-more="1"><span class="mi">•••</span><span>Ещё</span></button>
+</nav>
 <div id="searchOverlay" class="search-overlay" aria-hidden="true">
   <div class="search-dialog">
     <div class="search-top"><strong>Поиск по приложению</strong><button id="searchClose" class="icon-btn">✕</button></div>
