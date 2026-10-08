@@ -387,7 +387,7 @@ const localPurchaseAnalysis=i=>{
 const KEY='spend-v1';
 let S={items:[],cur:'RON',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],sleep:[],foodDb:[],budgets:{},recurring:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)S={...S,...s}}catch(e){}
-S.goals=Array.isArray(S.goals)?S.goals:[];
+S.goals=Array.isArray(S.goals)?S.goals:[];S.goalsDirty=false;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
@@ -734,7 +734,7 @@ const cloudItem=i=>db&&cw(()=>db.doc(P+'/i_'+i.id).set(i));
 const cloudDel=id=>db&&cw(()=>db.doc(P+'/i_'+id).delete());
 async function cloudBulk(list,quiet){if(!db)return;let k=0;for(const i of list){await cw(()=>db.doc(P+'/i_'+i.id).set(i));k++;if(!quiet&&list.length>5&&k%10===0)toast('Синхронизация: '+k+' из '+list.length)}}
 function cloudAnalysis(){if(!db)return;const keep=new Set([...S.items].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,150).map(i=>String(i.id)));const m={};Object.keys(S.analysis).forEach(k=>{if(keep.has(k))m[k]=S.analysis[k]});return cw(()=>db.doc(P+'/analysis').set({map:m}))}
-let stT;function cloudSettings(now){if(!db)return;clearTimeout(stT);const go=()=>cw(()=>db.doc(P+'/settings').set({cur:S.cur,limit:S.limit||0,overall:S.overall||null,goals:S.goals||[]}));if(now)go();else stT=setTimeout(go,700)}
+let stT;function cloudSettings(now){if(!db)return;clearTimeout(stT);const go=async()=>{await cw(()=>db.doc(P+'/settings').set({cur:S.cur,limit:S.limit||0,overall:S.overall||null,goals:S.goals||[]}));S.goalsDirty=false};if(now)go();else stT=setTimeout(go,700)}
 function setSync(){$('sync').textContent=db?'☁️ синхронизация':'📱 только это устройство';
   $('syncTxt').textContent=db?'Покупки хранятся в личной папке этого приложения, доступной только вам, и синхронизируются между устройствами, где вы открываете его под своим аккаунтом Claude.':'Синхронизация недоступна: данные хранятся только в браузере этого устройства. Откройте приложение в Claude под своим аккаунтом, чтобы включить её.'}
 function connect(){
@@ -800,7 +800,7 @@ function renderGoals(){
     if(p.kind==='max')meta.textContent=p.done?'✅ Пока укладываетесь в лимит · осталось '+fmt(Math.max(0,p.target-p.current)):( '⚠️ Лимит превышен на '+fmt(p.current-p.target));
     else meta.textContent=p.done?'✅ Цель выполнена в текущем периоде':'Осталось '+Math.max(0,p.target-p.current)+' '+p.unit;
     c.appendChild(meta);
-    const act=el('button','goal-action','Удалить');act.onclick=()=>{S.goals=S.goals.filter(x=>x.id!==g.id);save();cloudSettings(true);renderAll();toast('Цель удалена')};c.appendChild(act);
+    const act=el('button','goal-action','Удалить');act.onclick=()=>{S.goals=S.goals.filter(x=>x.id!==g.id);S.goalsDirty=true;save();cloudSettings(true);renderAll();toast('Цель удалена')};c.appendChild(act);
     box.appendChild(c);
   })
 }
@@ -824,7 +824,7 @@ function initGoalsUI(){
       if(!Array.isArray(S.goals))S.goals=[];
       if(S.goals.length>=10){toast('Сейчас лучше оставить до 10 целей, чтобы экран не превращался в список задач');return}
       S.goals.push({id:Date.now(),metric:m,title:t||goalTitle(m),target:n});
-      save();
+      S.goalsDirty=true;save();
       if(typeof cloudSettings==='function')cloudSettings(true);
       if(title)title.value='';
       renderGoals();
@@ -890,7 +890,7 @@ function initNewNav(){
 }
 
     if(an)S.analysis=an.map||{};
-    if(st&&!snap.metadata.hasPendingWrites){S.cur=st.cur||S.cur;S.limit=st.limit||0;S.overall=st.overall||null;S.goals=Array.isArray(st.goals)?st.goals:S.goals;$('cur').value=S.cur;if(document.activeElement!==$('limit'))$('limit').value=S.limit||''}
+    if(st&&!snap.metadata.hasPendingWrites){S.cur=st.cur||S.cur;S.limit=st.limit||0;S.overall=st.overall||null;if(!S.goalsDirty&&Array.isArray(st.goals))S.goals=st.goals;$('cur').value=S.cur;if(document.activeElement!==$('limit'))$('limit').value=S.limit||''}
     save();renderAll();
   },e=>{db=null;setSync();toast('Синхронизация недоступна, данные сохраняются на устройстве')});
 }
@@ -1613,6 +1613,25 @@ S.items.forEach(i=>{if(!i.date)i.date=today()});
   try{const d=await claude.use('db'),u=await claude.use('user'),id=u&&await u.id();if(d&&id){db=d;P='data/users/'+id;connect()}}catch(e){db=null}
   setSync();renderAll()})();
 show();
+</script><script>
+(function(){
+  function bindGoalFallback(){
+    const b=document.getElementById('goalAdd'),list=document.getElementById('goalList');
+    if(!b||b.dataset.fallbackBound)return;
+    b.dataset.fallbackBound='1';
+    b.addEventListener('click',function(){
+      setTimeout(function(){
+        try{
+          if(typeof S==='undefined'||!Array.isArray(S.goals)||S.goals.length) return;
+          localStorage.setItem('spend-v1',JSON.stringify(S));
+        }catch(e){}
+      },0);
+    },true);
+  }
+  bindGoalFallback();
+  const mo=new MutationObserver(bindGoalFallback);
+  mo.observe(document.documentElement,{childList:true,subtree:true});
+})();
 </script><script>
 (function(){
  const root=document.documentElement,themeSelect=document.getElementById('themeSelect');
