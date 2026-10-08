@@ -154,6 +154,32 @@ main{max-width:1180px;margin:0 auto;padding:26px 26px 70px}section{display:none}
   <div class="card"><button class="btn" id="bAI">📊 Анализ формы с ИИ</button><div id="bAIout" class="an" style="margin-top:10px"></div></div>
 </section>
 
+<section id="t-sleep">
+  <div class="card"><h2>Записать сон</h2>
+    <div class="fg">
+      <label>Дата ночи<input id="sl_date" type="date"></label>
+      <label>Лёг спать<input id="sl_bed" type="time"></label>
+      <label>Проснулся<input id="sl_wake" type="time"></label>
+      <label>Качество<select id="sl_quality"><option value="5">5 — отлично</option><option value="4">4 — хорошо</option><option value="3" selected>3 — нормально</option><option value="2">2 — плохо</option><option value="1">1 — очень плохо</option></select></label>
+      <label class="f2">Комментарий (необязательно)<input id="sl_note" maxlength="120" placeholder="Например: просыпался ночью"></label>
+    </div>
+    <p class="meta">Длительность рассчитывается автоматически. Если время пробуждения раньше времени отбоя, считается сон через полночь.</p>
+    <div class="row"><button class="btn" id="slSave">Записать сон</button></div>
+  </div>
+
+  <div class="card"><h2>Статистика</h2>
+    <div class="tiles" id="slTiles"></div>
+    <div class="meta" style="margin:6px 0 10px">Последние 14 ночей</div>
+    <div id="slChart"></div>
+  </div>
+
+  <div class="card"><h2>💡 Рекомендации</h2>
+    <div id="slAdvice" class="an"></div>
+  </div>
+
+  <div class="card"><h2>История</h2><div id="slList"></div></div>
+</section>
+
 <section id="t-food">
   <div class="card"><h2>Ваша норма</h2><div id="fTargets"></div></div>
   <div class="card"><h2>Дневник питания</h2><div class="fg">
