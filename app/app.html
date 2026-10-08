@@ -811,10 +811,27 @@ function syncGoalHint(){
 }
 function initGoalsUI(){
   const b=$('goalAdd');if(!b||b.dataset.bound)return;b.dataset.bound='1';
-  $('goalMetric').onchange=()=>{syncGoalHint()};
-  b.onclick=()=>{const metric=$('goalMetric').value,title=$('goalTitle').value.trim()||goalTitle(metric),target=Number($('goalTarget').value);if(!(target>0)){toast('Укажите целевое значение');return}
-    if(S.goals.length>=10){toast('Сейчас лучше оставить до 10 целей, чтобы экран не превращался в список задач');return}
-    S.goals.push({id:Date.now(),metric,title,target});save();cloudSettings(true);$('goalTitle').value='';renderAll();toast('Цель добавлена')};
+  const metric=$('goalMetric'),title=$('goalTitle'),target=$('goalTarget');
+  if(metric)metric.onchange=syncGoalHint;
+  b.type='button';
+  b.addEventListener('click',function(e){
+    e.preventDefault();e.stopPropagation();
+    try{
+      const m=metric&&metric.value||'workouts_week';
+      const t=title?title.value.trim():'';
+      const n=target?Number(target.value):0;
+      if(!(n>0)){toast('Укажите целевое значение');return}
+      if(!Array.isArray(S.goals))S.goals=[];
+      if(S.goals.length>=10){toast('Сейчас лучше оставить до 10 целей, чтобы экран не превращался в список задач');return}
+      S.goals.push({id:Date.now(),metric:m,title:t||goalTitle(m),target:n});
+      save();
+      if(typeof cloudSettings==='function')cloudSettings(true);
+      if(title)title.value='';
+      renderGoals();
+      if(typeof renderForecast==='function')renderForecast();
+      toast('Цель добавлена');
+    }catch(err){console.error(err);toast('Не удалось добавить цель. Попробуйте ещё раз')}
+  });
   syncGoalHint();
 }
 function streakSource(metric){
