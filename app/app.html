@@ -472,7 +472,7 @@ const GROUPS=[
  ['🎯 Цели',[['goals','Цели'],['streaks','Серии']]],
  ['💸 Деньги',[['buys','Покупки'],['ai','Анализ трат'],['budget','Бюджет']]],
  ['✅ Дела',[['tasks','Дела']]],
- ['🏋️ Зал',[['gym','Зал']]],
+ ['🏋️ Зал',[['gym','Зал'],['guides','Гайды'],['strength','Силовые']]],
  ['❤️ Здоровье',[['body','Форма'],['food','Питание'],['sleep','Сон']]],
  ['⚙️ Данные',[['data','Данные']]]
 ],memo={};
@@ -2084,7 +2084,7 @@ renderAll();
 const main=document.querySelector('main');
 const css=document.createElement('style');css.textContent='body[data-tab=guides],body[data-tab=strength]{--sec:#ea580c}.gd summary{display:flex;justify-content:space-between;gap:8px;align-items:center}.gd .gb{padding:4px 0 2px;font-size:14px;line-height:1.5}.gd ol,.gd ul{margin:4px 0 8px;padding-left:20px}.gd li{margin:3px 0}.gd h4{margin:10px 0 2px;font-size:13px;color:var(--s,var(--text))}.gd a{color:var(--s,var(--accent));font-weight:700;text-decoration:none}.gtag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--sec) 14%,var(--panel2));color:var(--s,var(--text))}.pl{display:flex;align-items:center;gap:4px;justify-content:center;margin:10px 0;overflow-x:auto}.pl i{display:block;border-radius:4px;color:#fff;font-style:normal;font-size:11px;font-weight:700;text-align:center;line-height:1}.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl th,.tbl td{padding:7px 6px;border-bottom:1px solid var(--border);text-align:left}.tbl th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.tbl tr.hl td{background:color-mix(in srgb,var(--sec) 12%,transparent);font-weight:700}.rec{border:1px solid var(--border);border-left:4px solid var(--sec);border-radius:14px;padding:12px 14px;background:var(--panel2);margin:10px 0}.rec .big{font-size:26px;font-weight:850;letter-spacing:-.03em}';document.head.appendChild(css);
 const mkS=id=>{const s=document.createElement('section');s.id='t-'+id;main.appendChild(s);return s};
-const gymGroup=GROUPS.find(g=>g[0].includes('Зал'));if(gymGroup){gymGroup[1].push(['guides','Гайды'],['strength','Силовые']);}
+// «Гайды» и «Силовые» включены прямо в основную конфигурацию меню зала.
 const gSec=mkS('guides'),sSec=mkS('strength'),TT={guides:'Гайды',strength:'Силовые'},sh0=show;show=function(){sh0();if(TT[tab])$('pageTitle').textContent=TT[tab]};
 const num=v=>parseFloat(String(v).replace(',','.'));const r25=x=>Math.round(x/2.5)*2.5,r05=x=>Math.round(x*2)/2,f1=x=>(Math.round(x*10)/10).toString().replace('.',',');
 /* ---------- ГАЙДЫ ---------- */
