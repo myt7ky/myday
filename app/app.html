@@ -2136,7 +2136,7 @@ function renderGuides(){const f=$('gd_f');f.innerHTML='';['Все','Грудь',
   b.appendChild(el('h4',null,'Частые ошибки'));const ul=document.createElement('ul');x.e.forEach(s=>ul.appendChild(el('li',null,s)));b.appendChild(ul);b.appendChild(el('h4',null,'Совет'));b.appendChild(el('div',null,x.t));
   const row=el('div','row');row.style.marginTop='10px';const a=document.createElement('a');a.href='https://www.youtube.com/results?search_query='+encodeURIComponent('техника '+x.n+' упражнение');a.target='_blank';a.rel='noopener';a.textContent='▶ Видео с техникой';row.appendChild(a);
   const add=el('button','btn sec','＋ В журнал');add.style.cssText='margin:0;min-height:36px!important;padding:6px 12px';add.onclick=()=>dayOpen('gym','g_ex')||0;add.onclick=()=>{dayOpen('gym','g_ex');setTimeout(()=>{$('g_ex').value=x.n;$('g_ex').dispatchEvent(new Event('input'))},120)};row.appendChild(add);
-  const pl=el('button','btn sec','Рассчитать вес');pl.style.cssText='margin:0;min-height:36px!important;padding:6px 12px';pl.onclick=()=>{ST.ex=x.n;sm=1;ST.sub=1;sv();tab='strength';show()};row.appendChild(pl);b.appendChild(row);d.appendChild(b);L.appendChild(d)})}
+  const pl=el('button','btn sec','Рассчитать вес');pl.style.cssText='margin:0;min-height:36px!important;padding:6px 12px';pl.onclick=()=>{ST.ex=x.n;sm=1;ST.sub=1;sv();openTrackerTab('strength')};row.appendChild(pl);b.appendChild(row);d.appendChild(b);L.appendChild(d)})}
 $('gd_q').oninput=e=>{gq=e.target.value;renderGuides()};
 /* ---------- СИЛОВЫЕ ---------- */
 S.maxes=S.maxes&&typeof S.maxes==='object'?S.maxes:{};S.strengthPref=S.strengthPref||{ex:'Жим лёжа',goal:'mass',week:1};const ST=S.strengthPref;const sv=()=>save();
@@ -2178,6 +2178,7 @@ function platesTab(B){const c=el('div','card');c.appendChild(el('h2',null,'💿 
   const cnt={};use.forEach(p=>cnt[p]=(cnt[p]||0)+1);const txt=Object.entries(cnt).sort((a,b)=>b[0]-a[0]).map(([p,n])=>n+' × '+String(p).replace('.',',')+' кг').join(' + ');const rec=el('div','rec');rec.appendChild(el('div','meta','На каждую сторону'));rec.appendChild(el('div','big',txt||'только гриф'));rec.appendChild(el('div','meta','Итого на штанге: '+f1(total)+' кг'+(Math.abs(total-T)>.01?' · '+f1(Math.abs(T-total))+' кг до нужного веса собрать из имеющихся блинов не получается':'')));out.appendChild(rec)}
  [t,bar].forEach(i=>i.oninput=calc);calc()}
 /* ---------- прямой доступ к инструментам из вкладки «Зал» ---------- */
+const openTrackerTab=id=>{if(document.body.dataset.view!=='tracker'&&window.setView)window.setView('tracker',false);tab=id;show()};
 const gymHome=$('t-gym');
 if(gymHome&&!$('gymToolsQuick')){
  const quick=el('div','card');quick.id='gymToolsQuick';
@@ -2185,8 +2186,8 @@ if(gymHome&&!$('gymToolsQuick')){
  quick.appendChild(el('p','meta','Техника упражнений, расчёт рабочего веса, блины и силовая программа — здесь, отдельно от журнала.'));
  const row=el('div','row');row.style.cssText='display:flex;flex-wrap:wrap;gap:8px;align-items:center';
  const shortcut=(label,fn)=>{const b=el('button','btn sec',label);b.type='button';b.style.cssText='margin:0;min-height:40px;padding:9px 12px';b.onclick=fn;row.appendChild(b)};
- const openStrength=panel=>{sm=panel;ST.sub=panel;sv();tab='strength';show()};
- shortcut('📖 Гайды по упражнениям',()=>{tab='guides';show()});
+ const openStrength=panel=>{sm=panel;ST.sub=panel;sv();openTrackerTab('strength')};
+ shortcut('📖 Гайды по упражнениям',()=>openTrackerTab('guides'));
  shortcut('🧮 Калькулятор жима',()=>openStrength(1));
  shortcut('💿 Расчёт блинов',()=>openStrength(2));
  shortcut('📋 Силовая программа',()=>openStrength(0));
