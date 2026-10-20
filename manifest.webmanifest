@@ -1,15 +1,76 @@
 {
-  "name":"Мой день — личный трекер",
-  "short_name":"Мой день",
-  "description":"Личный трекер",
-  "start_url":"./",
-  "scope":"./",
-  "display":"standalone",
-  "orientation":"portrait",
-  "background_color":"#f4f6f8",
-  "theme_color":"#5b5bd6",
-  "lang":"ru",
-  "icons":[
-    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  "name": "MyApp — твой день",
+  "short_name": "MyApp",
+  "description": "Личный трекер",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0c10",
+  "theme_color": "#0c0c10",
+  "lang": "ru",
+  "icons": [
+    {
+      "purpose": "any",
+      "type": "image/png",
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192"
+    },
+    {
+      "purpose": "any",
+      "type": "image/png",
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "+ Покупка",
+      "short_name": "+ Покупка",
+      "url": "./?add=buy",
+      "icons": [
+        {
+          "src": "./icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "+ Дело",
+      "short_name": "+ Дело",
+      "url": "./?add=task",
+      "icons": [
+        {
+          "src": "./icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "+ Еда",
+      "short_name": "+ Еда",
+      "url": "./?add=food",
+      "icons": [
+        {
+          "src": "./icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "+ Сон",
+      "short_name": "+ Сон",
+      "url": "./?add=sleep",
+      "icons": [
+        {
+          "src": "./icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
   ]
 }

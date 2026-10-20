@@ -2,36 +2,26 @@
 <html lang="ru"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Мой день</title>
+<title>MyApp</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<meta name="theme-color" content="#5b5bd6">
+<meta name="theme-color" content="#0c0c10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Мой день">
-</head><body><div style="min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,sans-serif;color:#6b7280">Загрузка «Мой день»…</div>
+<meta name="apple-mobile-web-app-title" content="MyApp">
+</head><body><div style="min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,sans-serif;color:#6b7280">Загрузка «MyApp»…</div>
 <script>
 (async()=>{
+  const part="./app/app.html",v="53";
+  try{if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{})}catch(e){}
   try{
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r=>r.unregister()));
-    }
-    if('caches' in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.map(k=>caches.delete(k)));
-    }
-  }catch(e){}
-  const parts=["./app/app.html"];
-  const v="35";
-  try{
-    const xs=await Promise.all(parts.map(x=>fetch(x+"?v="+v,{cache:"no-store"})));
-    for(let i=0;i<xs.length;i++) if(!xs[i].ok) throw new Error("Не загрузился модуль "+parts[i]);
-    const html=(await Promise.all(xs.map(x=>x.text()))).join("");
-    if(!html.includes('id="nav"')||!html.includes('id="t-ov"')) throw new Error("Модули приложения повреждены");
+    const r=await fetch(part+"?v="+v,{cache:"no-store"});
+    if(!r.ok)throw new Error("Не загрузился модуль "+part);
+    const html=await r.text();
+    if(!html.includes('id="nav"')||!html.includes('id="t-ov"'))throw new Error("Модуль приложения повреждён");
     document.open();document.write(html);document.close();
   }catch(e){
-    document.body.innerHTML="<div style=\"padding:24px;font-family:system-ui\"><h2>Ошибка загрузки</h2><p>"+String(e.message||e)+"</p><button onclick=\"location.reload()\">Повторить</button></div>";
+    document.body.innerHTML="<div style=\"padding:24px;font-family:system-ui\"><h2>Нет связи</h2><p>Не удалось загрузить приложение: "+String(e.message||e).replace(/[<>&]/g,"")+".</p><p>Откройте его один раз с интернетом — после этого оно будет работать офлайн.</p><button onclick=\"location.reload()\">Повторить</button></div>";
   }
 })();
 </script></body></html>
