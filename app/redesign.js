@@ -4,6 +4,7 @@
   const stylesheet = el('link');
   stylesheet.rel = 'stylesheet'; stylesheet.href = './app/redesign.css'; document.head.append(stylesheet);
   const chromeStyles=el('link');chromeStyles.rel='stylesheet';chromeStyles.href='./app/chrome.css';document.head.append(chromeStyles);
+  const insightStyles=el('link');insightStyles.rel='stylesheet';insightStyles.href='./app/insights.css';document.head.append(insightStyles);
   document.documentElement.dataset.visual='chrome';
   if(localStorage.getItem('myday-visual-version')!=='chrome-1'){document.documentElement.dataset.theme='dark';localStorage.setItem('myday-theme','dark');localStorage.setItem('myday-visual-version','chrome-1');const theme=document.getElementById('themeSelect');if(theme)theme.value='dark'}
   document.title = 'MyDay — твой день'; document.querySelector('.brand h1').textContent = 'MyDay';
@@ -39,10 +40,10 @@
   const brand = button('', () => go('home'), 'ma-nav-brand'); brand.append(el('span', 'ma-mark'), el('b', null, 'myday')); brand.setAttribute('aria-label', 'MyDay — сегодня'); nav.append(brand);
   [['home', 'Сегодня'], ['tasks', 'Дела'], ['buys', 'Деньги'], ['health', 'Здоровье'], ['more', 'Ещё']].forEach(([id, label]) => { const b = button('', () => go(id), 'ma-nav-item'); b.dataset.page = id; b.append(icon(id), el('span', null, label)); nav.append(b); });
   const localNote = el('div', 'ma-local-note'); localNote.append(el('i'), el('span', null, 'Твой личный трекер')); nav.append(localNote);
-  let screen = 'home', taskFilter = 'today', taskDraft = '', habitDraft = '', undoTask = null, taskLimit=50;
+  let screen = 'home', taskFilter = 'today', taskDraft = '', habitDraft = '', undoTask = null, taskLimit=50,pendingBudget=false;
   const retired=new Set(['ov','forecast','rpg','detective','plan','streaks','ai','habits','week']);
   const previousShow=show;
-  show=function(){if(retired.has(tab)||tab==='tasks'){tab='tasks';screen='tasks';window.setView('hub',false);render();return}if(tab==='analytics'&&recordDayCount()<7){screen='more';window.setView('hub',false);render();return}previousShow()};
+  show=function(){if(tab==='buys'||tab==='budget'){pendingBudget=tab==='budget';tab='buys';screen='buys';window.setView('hub',false);render();if(pendingBudget&&window.MyDayInsights?.ready){pendingBudget=false;window.MyDayInsights.openBudget()}return}if(retired.has(tab)||tab==='tasks'){tab='tasks';screen='tasks';window.setView('hub',false);render();return}if(tab==='analytics'&&recordDayCount()<7){screen='more';window.setView('hub',false);render();return}previousShow()};
   for(let i=GROUPS.length-1;i>=0;i--){GROUPS[i][1]=GROUPS[i][1].filter(([id])=>!retired.has(id));if(!GROUPS[i][1].length)GROUPS.splice(i,1)}
   function tomorrow(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+1);return ds(d)}
   function dayRecord(date){return S.mydayDaily?.[date]||{}}
@@ -56,7 +57,7 @@
   const moneyTabs = new Set(['buys', 'budget', 'ai']);
   function go(id) {
     if(retired.has(id))id='tasks';
-    if (['home', 'tasks', 'health', 'more'].includes(id)) { screen = id;if(id==='tasks')tab='tasks';window.setView('hub'); }
+    if (['home', 'tasks', 'buys', 'health', 'more'].includes(id)) { screen = id;if(id==='tasks'||id==='buys')tab=id;window.setView('hub'); }
     else { screen = 'home'; window.setView('tracker'); tab = id; show(); }
     try { history.replaceState({...history.state,mydayScreen:screen,mydayTab:id},''); } catch(e) {}
     document.body.classList.remove('nav-open'); window.scrollTo({top:0,behavior:'instant'}); render();
@@ -217,7 +218,7 @@
     });
     const form=el('form','ma-habit-form'),input=el('input');input.id='ma-habit-title';input.placeholder='Своя привычка';input.maxLength=60;input.required=true;input.value=habitDraft;input.setAttribute('aria-label','Название привычки');input.oninput=()=>{habitDraft=input.value};input.enterKeyHint='done';const add=el('button','ma-habit-add');add.type='submit';add.append(icon('plus'));add.setAttribute('aria-label','Добавить привычку');form.append(input,add);form.onsubmit=e=>{e.preventDefault();addHabit(habitDraft)};p.append(form);return p;
   }
-  function money(value){const code=({'€':'EUR','$':'USD','₽':'RUB','₴':'UAH','£':'GBP'})[S.cur]||S.cur||'RUB';try{return new Intl.NumberFormat('ru-RU',{style:'currency',currency:code,maximumFractionDigits:0}).format(value)}catch{return Math.round(value).toLocaleString('ru-RU')+' '+(S.cur||'')}}
+  function money(value){const code=({'€':'EUR','$':'USD','₽':'RUB','₴':'UAH','£':'GBP'})[S.cur]||S.cur||'RUB';try{return new Intl.NumberFormat('ru-RU',{style:'currency',currency:code,minimumFractionDigits:0,maximumFractionDigits:2}).format(value)}catch{return value.toLocaleString('ru-RU',{maximumFractionDigits:2})+' '+(S.cur||'')}}
   function summaryPanel(current){
     const section=el('div','ma-summary');section.append(el('h2',null,'Всё остальное — рядом'));const grid=el('div','ma-summary-grid');
     function tile(id,title,value,description,cls=''){const b=button('',()=>go(id),'ma-summary-item'),h=el('div','ma-summary-label');h.append(icon(id==='sleep'?'moon':id),el('span',null,title),icon('arrow'));b.append(h,el('strong',cls,value),el('small',null,description));grid.append(b)}
@@ -228,7 +229,7 @@
   }
   function healthScreen(){
     const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','СВОЙ ТЕМП'),el('h1',null,'Здоровье'),el('p','ma-description','Сон, питание и движение. Всё в одном месте.'));home.append(head);const grid=el('div','ma-health-grid');
-    [['sleep','Сон','Длительность, режим и качество'],['food','Питание','Приёмы пищи и дневник питания'],['gym','Тренировки','Журнал подходов и упражнений'],['body','Форма','Вес, замеры и изменения'],['programs','Программа','Твой план тренировок']].forEach(([id,title,desc])=>{const b=button('',()=>go(id),'ma-health-card');b.append(icon(id==='sleep'?'moon':id==='programs'?'tasks':id));const copy=el('div');copy.append(el('h2',null,title),el('p',null,desc));b.append(copy,icon('arrow'));grid.append(b)});home.append(grid);
+    [['sleep','Сон','Длительность, режим и качество'],['food','Питание','Приёмы пищи и дневник питания'],['gym','Тренировки','Журнал подходов и упражнений'],['body','Форма','Вес, замеры и изменения'],['programs','Программа','Твой план тренировок']].forEach(([id,title,desc])=>{const b=button('',()=>go(id),'ma-health-card');b.append(icon(id==='sleep'?'moon':id==='programs'?'tasks':id));const copy=el('div');copy.append(el('h2',null,title),el('p',null,desc));b.append(copy,icon('arrow'));grid.append(b)});home.append(grid);if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.health());
   }
   function moreScreen(){
     const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПОД РУКОЙ'),el('h1',null,'Твоё пространство'),el('p','ma-description','Только то, что помогает двигаться в своём темпе.'));home.append(head);
@@ -241,15 +242,15 @@
   }
   function tasksScreen(){const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПО ОДНОМУ ШАГУ'),el('h1',null,'Дела'),el('p','ma-description','Выбери главное. Остальному найди своё время.'));home.append(head,taskPanel(today(),S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===today()).length),focusPanel(S.tasks.filter(t=>!t.done)))}
   function render(){
-    updateNav();syncMotion();if(document.body.dataset.view!=='hub')return;
+    updateNav();syncMotion();if(document.body.dataset.view!=='hub'){if(window.MyDayInsights?.ready)window.MyDayInsights.decorateLegacy(tab);return}
     const previous=home.dataset.screen===screen?new Map([...home.querySelectorAll('[data-key]')].map(node=>[node.dataset.key,node.getBoundingClientRect()])):new Map();home.dataset.screen=screen;
     const active=document.activeElement,focusId=active?.id,selection=typeof active?.selectionStart==='number'?[active.selectionStart,active.selectionEnd]:null;home.replaceChildren(topbar());
-    if(screen==='health')healthScreen();else if(screen==='more')moreScreen();else if(screen==='tasks')tasksScreen();else{
+    if(screen==='health')healthScreen();else if(screen==='more')moreScreen();else if(screen==='tasks')tasksScreen();else if(screen==='buys'){if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.finance());else home.append(el('p',null,'Загрузка расходов…'))}else{
       const current=today(),done=S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===current).length,remaining=S.tasks.filter(t=>!t.done&&scheduled(t,current)).length;
       const heading=el('div','ma-heading'),title=el('div');title.append(el('p','ma-eyebrow',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})),el('h1',null,'Сегодня'));
       const progress=el('div','ma-day-progress'),ring=el('span','ma-progress-ring');ring.style.setProperty('--progress',(done+remaining?done/(done+remaining)*100:0)+'%');ring.setAttribute('aria-hidden','true');ring.append(el('span',null,done));const text=el('div');text.append(el('b',null,done+remaining?done+' из '+(done+remaining)+' выполнено':'План пока свободен'),el('span',null,remaining?remaining+(remaining===1?' дело впереди':remaining<5?' дела впереди':' дел впереди'):done?'На сегодня план выполнен':'Твой день — твои приоритеты'));progress.append(ring,text);progress.setAttribute('role','group');progress.setAttribute('aria-label',done+' выполнено, '+remaining+' осталось');heading.append(title,progress);chromeStage.querySelector('.ma-heading')?.remove();chromeStage.append(heading);home.append(chromeStage,weekStrip(current));
-      const grid=el('div','ma-grid');grid.append(taskPanel(current,done),habitPanel(current),focusPanel(S.tasks.filter(t=>!t.done)));home.append(grid,reviewPanel(),summaryPanel(current));const footer=el('div','ma-footer');footer.append(el('span',null,'Без спешки. По одному шагу.'),button('Данные и резервная копия',()=>go('data'),'ma-text-button'));home.append(footer);
-    }tick();window.MyDayChrome?.refresh();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
+      const grid=el('div','ma-grid');grid.append(taskPanel(current,done),habitPanel(current),focusPanel(S.tasks.filter(t=>!t.done)));home.append(grid);if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.activity());home.append(reviewPanel(),summaryPanel(current));const footer=el('div','ma-footer');footer.append(el('span',null,'Без спешки. По одному шагу.'),button('Данные и резервная копия',()=>go('data'),'ma-text-button'));home.append(footer);
+    }tick();if(window.MyDayInsights?.ready)window.MyDayInsights.decorateHeader(home,screen);window.MyDayChrome?.refresh();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
     if(motionAllowed())home.querySelectorAll('[data-key]').forEach(node=>{const old=previous.get(node.dataset.key),now=node.getBoundingClientRect();if(old&&Math.abs(old.top-now.top)>1)node.animate([{transform:'translateY('+(old.top-now.top)+'px)'},{transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})});
   }
   function tick(){const c=document.getElementById('ma-clock'),ms=S.myFocusEnd?Math.max(0,S.myFocusEnd-Date.now()):(S.myFocusRemaining??25*60e3);if(S.myFocusEnd&&ms===0){delete S.myFocusEnd;S.myFocusRemaining=0;save();toast('Фокус завершён. Время для перерыва.');render();return}if(c){const seconds=Math.ceil(ms/1000);c.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}}
@@ -257,10 +258,15 @@
   syncChrome();new MutationObserver(syncChrome).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   home.dataset.day=today();setInterval(()=>{tick();if(document.body.dataset.view==='hub'&&screen==='home'&&home.dataset.day!==today()){home.dataset.day=today();render()}},1000);
   new MutationObserver(render).observe(document.body,{attributes:true,attributeFilter:['data-view','data-tab']});window.addEventListener('pageshow',render);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();render()}});
-  window.addEventListener('popstate',e=>{screen=['home','tasks','health','more'].includes(e.state?.mydayScreen)?e.state.mydayScreen:'home';if(e.state?.v==='tracker'&&GROUPS.some(g=>g[1].some(x=>x[0]===e.state.mydayTab))){tab=e.state.mydayTab;show()}render()});
+  window.addEventListener('popstate',e=>{screen=['home','tasks','buys','health','more'].includes(e.state?.mydayScreen)?e.state.mydayScreen:'home';if(e.state?.v==='tracker'&&GROUPS.some(g=>g[1].some(x=>x[0]===e.state.mydayTab))){tab=e.state.mydayTab;show()}render()});
   document.addEventListener('pointerdown',e=>{if(!motionAllowed())return;const b=e.target.closest('.ma-home button,.ma-nav button');if(!b||b.disabled)return;const r=b.getBoundingClientRect(),ripple=el('span','ma-ripple');ripple.setAttribute('aria-hidden','true');ripple.style.left=(e.clientX-r.left)+'px';ripple.style.top=(e.clientY-r.top)+'px';b.append(ripple);setTimeout(()=>ripple.remove(),500)});
   document.addEventListener('click',e=>{document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{if(!menu.contains(e.target))menu.open=false})});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('.ma-dialog[open]'))document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary')?.focus()})});
   try{history.replaceState({...history.state,mydayScreen:'home',mydayTab:tab},'')}catch(e){}render();
   const sculptureScript=el('script');sculptureScript.src='./app/chrome.js';document.head.append(sculptureScript);
+  const insightScript=el('script');insightScript.src='./app/insights.js';insightScript.onload=()=>{window.MyDayInsights.configure({state:()=>S,categories:()=>CATS,el,button,icon,iconButton,panel,makeDialog,labeled,money,today,ds,go,render,motionAllowed,sleepDuration,
+    commitExpense(item,editing){const i=S.items.findIndex(x=>x.id===item.id);if(editing&&i<0){toast('Эта покупка уже удалена');return}if(i>=0)S.items[i]=item;else S.items.push(item);delete S.analysis[item.id];save();cloudItem(item);cloudAnalysis()},
+    removeExpense(id){S.items=S.items.filter(x=>x.id!==id);delete S.analysis[id];save();cloudDel(id);cloudAnalysis()},
+    saveBudget(value){S.limit=value;const input=document.getElementById('limit');if(input)input.value=value||'';save();cloudSettings(true)}
+  });render();if(pendingBudget){pendingBudget=false;window.MyDayInsights.openBudget()}};document.head.append(insightScript);
 })();

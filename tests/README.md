@@ -6,6 +6,7 @@ Install Playwright in your development environment, install its Chromium browser
 node tests/mobile.cjs
 node tests/daily.cjs
 node tests/chrome.cjs
+node tests/insights.cjs
 ```
 
 Optional environment variables:
@@ -22,5 +23,7 @@ The check serves repository files through Playwright request routing at a synthe
 `daily.cjs` covers a pinned main task, task editing and cancellation, preservation of completed substeps, planning tomorrow without changing deadlines, carry undo, evening reviews and tomorrow's priority, completed tasks, simplified navigation, effect preferences and system reduced motion, JSON backup export/import, timestamp-based daily-record merging, and responsive dialogs. It also generates light/dark overview screenshots with disposable sample records.
 
 `chrome.cjs` checks the default chrome theme, reuse of the same canvas/context through navigation and theme changes, actual sculpture motion, a static frame under reduced motion, context-loss fallback, startup without WebGL, and task completion after graphics loss. It generates dark desktop/mobile screenshots. The graphics are procedural WebGL and SVG; no remote assets or libraries are used.
+
+`insights.cjs` covers the light overview hero, expense validation and decimal amounts, creation/edit/reload/delete/undo, real period totals excluding future entries, daily/cumulative chart tables and keyboard navigation, custom and missing categories, search, month selection, monthly limits, four health charts with missing-record gaps, the habit heatmap, contextual illustrations, both themes, and chart dimensions/overflow across seven viewport widths.
 
 Limits: service-worker installation/offline behavior, remote AI and cloud APIs, and physical mobile keyboards are not covered. Screenshot records are test fixtures, not user records.

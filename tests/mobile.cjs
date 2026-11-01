@@ -14,7 +14,7 @@ const root=path.resolve(__dirname,'..');
  const out=process.env.MYDAY_QA_OUTPUT || await fs.mkdtemp(path.join(os.tmpdir(),'myday-previews-'));console.log('Screenshots: '+out);await fs.mkdir(out,{recursive:true});
  try{
  await page.goto('https://myday.test/',{waitUntil:'domcontentloaded'});await page.evaluate(()=>localStorage.clear());await page.reload();await page.locator('.ma-tasks').waitFor();
- await page.waitForFunction(()=>window.MyDayChrome?.ready);await page.locator('#ma-task-title').waitFor();assert((await page.locator('#ma-task-title').boundingBox()).y<550);assert.equal(await page.locator('.ma-hero').count(),0);
+ await page.waitForFunction(()=>window.MyDayChrome?.ready&&window.MyDayInsights?.ready);await page.locator('#ma-task-title').waitFor();assert((await page.locator('#ma-task-title').boundingBox()).y<550);assert.equal(await page.locator('.ma-hero').count(),0);
  await page.screenshot({path:out+'/empty-mobile.png',fullPage:true,animations:'disabled'});
  await page.getByRole('textbox',{name:'Новое дело',exact:true}).fill('   ');await page.getByRole('button',{name:'Добавить дело',exact:true}).click();assert.equal(await page.evaluate(()=>S.tasks.length),0);
  await page.getByRole('textbox',{name:'Новое дело',exact:true}).fill('Подготовить план на неделю');await page.getByRole('textbox',{name:'Новое дело',exact:true}).press('Enter');
@@ -31,7 +31,7 @@ const root=path.resolve(__dirname,'..');
  await page.getByRole('button',{name:'Поиск по приложению',exact:true}).click();assert(await page.locator('#searchOverlay').isVisible());await page.keyboard.press('Escape');assert(!(await page.locator('#searchOverlay').isVisible()));
  await page.locator('.ma-nav [data-page=more]').click();const sections=await page.locator('.ma-menu-link[data-tab]').evaluateAll(nodes=>nodes.map(n=>n.dataset.tab));
  assert.equal(await page.locator('.ma-menu-link').filter({hasText:/RPG|Прогноз|Мне лень|Колесо/}).count(),0);
- for(const id of sections){await page.locator('.ma-nav [data-page=more]').click();await page.locator('.ma-menu-link[data-tab='+id+']').click();assert.equal(await page.locator('body').getAttribute('data-tab'),id);await page.locator('#t-'+id).waitFor({state:'visible'})};
+ for(const id of sections){await page.locator('.ma-nav [data-page=more]').click();await page.locator('.ma-menu-link[data-tab='+id+']').click();if(id==='budget'){await page.locator('.mi-finance').waitFor();await page.getByRole('heading',{name:'Лимит на месяц',exact:true}).waitFor();await page.keyboard.press('Escape')}else{assert.equal(await page.locator('body').getAttribute('data-tab'),id);await page.locator('#t-'+id).waitFor({state:'visible'})}};
  console.log('PASS: quick entry, whitespace, undo, focus association/pause/reset/reload, keyboard habits, duplicate prevention, drafts, filters, search, browser back, '+sections.length+' existing sections.');
  await page.locator('.ma-nav [data-page=home]').click();
  for(const currency of ['RON','€','$','₽','₴','£','RUB']){await page.evaluate(cur=>{S.cur=cur;save()},currency);await page.reload();await page.locator('.ma-summary').waitFor()}
