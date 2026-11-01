@@ -1,13 +1,13 @@
 {
-  "name": "MyApp — твой день",
-  "short_name": "MyApp",
+  "name": "MyDay — твой день",
+  "short_name": "MyDay",
   "description": "Личный трекер",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0c0c10",
-  "theme_color": "#0c0c10",
+  "background_color": "#f6f5f1",
+  "theme_color": "#f6f5f1",
   "lang": "ru",
   "icons": [
     {
