@@ -1,5 +1,5 @@
-const CACHE='myday-pwa-v56';
-const CORE=['./','./index.html','./app/app.html?v=56','./app/redesign.js','./app/redesign.css','./assets/hero.webp','./manifest.webmanifest','./icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-180.png'];
+const CACHE='myday-pwa-v57';
+const CORE=['./','./index.html','./app/app.html?v=57','./app/redesign.js','./app/redesign.css','./app/chrome.css','./app/chrome.js','./assets/chrome-wave.svg','./assets/hero.webp','./manifest.webmanifest','./icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-180.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('myday-pwa-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

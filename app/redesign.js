@@ -3,6 +3,9 @@
   'use strict';
   const stylesheet = el('link');
   stylesheet.rel = 'stylesheet'; stylesheet.href = './app/redesign.css'; document.head.append(stylesheet);
+  const chromeStyles=el('link');chromeStyles.rel='stylesheet';chromeStyles.href='./app/chrome.css';document.head.append(chromeStyles);
+  document.documentElement.dataset.visual='chrome';
+  if(localStorage.getItem('myday-visual-version')!=='chrome-1'){document.documentElement.dataset.theme='dark';localStorage.setItem('myday-theme','dark');localStorage.setItem('myday-visual-version','chrome-1');const theme=document.getElementById('themeSelect');if(theme)theme.value='dark'}
   document.title = 'MyDay — твой день'; document.querySelector('.brand h1').textContent = 'MyDay';
   const paths = {
     home: 'M4 4h6v6H4ZM14 4h6v6h-6ZM4 14h6v6H4ZM14 14h6v6h-6Z',
@@ -31,6 +34,7 @@
   function iconButton(id, label, fn, cls = 'ma-icon-button') { const b = button('', fn, cls); b.append(icon(id)); b.setAttribute('aria-label', label); b.title = label; return b; }
   function panel(title, action, cls = '') { const p = el('div', 'ma-panel ' + cls), h = el('div', 'ma-panel-head'); h.append(el('h2', null, title)); if (action) h.append(action); p.append(h); return p; }
   const home = el('div', 'ma-home'); home.id = 'ma-home'; document.body.append(home);
+  const chromeStage=createChromeStage();
   const nav = el('nav', 'ma-nav'); nav.setAttribute('aria-label', 'Основная навигация'); document.body.append(nav);
   const brand = button('', () => go('home'), 'ma-nav-brand'); brand.append(el('span', 'ma-mark'), el('b', null, 'myday')); brand.setAttribute('aria-label', 'MyDay — сегодня'); nav.append(brand);
   [['home', 'Сегодня'], ['tasks', 'Дела'], ['buys', 'Деньги'], ['health', 'Здоровье'], ['more', 'Ещё']].forEach(([id, label]) => { const b = button('', () => go(id), 'ma-nav-item'); b.dataset.page = id; b.append(icon(id), el('span', null, label)); nav.append(b); });
@@ -70,6 +74,17 @@
   function topbar() {
     const top = el('div', 'ma-top'), wordmark = el('div', 'ma-wordmark'); wordmark.append(el('span', 'ma-mark'), el('b', null, 'myday')); top.append(wordmark, el('span', 'ma-top-note', 'Место для твоего дня'));
     const actions = el('div', 'ma-top-actions'); actions.append(iconButton('search', 'Поиск по приложению', () => document.querySelector('.search-launch button')?.click()), iconButton(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 'Переключить тему', toggleTheme)); top.append(actions); return top;
+  }
+  function createChromeStage(){
+    const stage=el('div','ma-chrome-stage');stage.setAttribute('aria-label','Обзор дня');
+    const top=el('div','ma-stage-top');top.append(el('span',null,'ПЛАН / ФОКУС / РИТМ'),el('span','ma-checker'));stage.append(top);
+    const mesh=document.createElementNS('http://www.w3.org/2000/svg','svg');mesh.setAttribute('viewBox','0 0 1000 400');mesh.setAttribute('preserveAspectRatio','none');mesh.setAttribute('class','ma-chrome-mesh');mesh.setAttribute('aria-hidden','true');
+    for(let i=0;i<34;i++){const path=document.createElementNS(mesh.namespaceURI,'path');const y=35+i*8;path.setAttribute('d','M -60 '+y+' C 140 '+(y-90)+',190 '+(y+250)+',410 '+(y+40)+' S 710 '+(y-170)+',1080 '+(y+30));mesh.append(path)}stage.append(mesh);
+    const orbit=el('div','ma-stage-orbit');orbit.setAttribute('aria-hidden','true');stage.append(orbit);
+    const sculpture=el('div','ma-sculpture');sculpture.setAttribute('aria-hidden','true');
+    sculpture.innerHTML='<svg class="ma-chrome-fallback" viewBox="0 0 440 360" aria-hidden="true"><defs><linearGradient id="ma-metal" x1=".2" y1="0" x2=".8" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#090909"/><stop offset=".13" stop-color="#eee"/><stop offset=".19" stop-color="#383838"/><stop offset=".28" stop-color="#000"/><stop offset=".35" stop-color="#fcfcfc"/><stop offset=".42" stop-color="#444"/><stop offset=".54" stop-color="#050505"/><stop offset=".62" stop-color="#fafafa"/><stop offset=".67" stop-color="#777"/><stop offset=".8" stop-color="#090909"/><stop offset=".92" stop-color="#e0e0e0"/><stop offset="1" stop-color="#333"/></linearGradient></defs><path d="M138 235C80 227 69 184 112 155C150 129 194 151 213 106C235 51 292 49 321 85C348 118 307 151 310 183C314 221 351 238 317 270C280 307 235 270 209 290C176 314 121 288 138 235ZM176 211C189 231 222 237 249 217C269 204 260 176 242 169C218 157 197 183 176 190C160 195 160 203 176 211Z" fill="url(#ma-metal)" fill-rule="evenodd" stroke="#b9b9b9" stroke-width="1.2"/><path d="M111 170C165 138 201 163 225 104C245 66 287 61 310 82M146 241C171 275 202 272 229 260C264 247 282 282 316 257M171 197C195 214 214 223 244 200" fill="none" stroke="#fafafa" stroke-width="3" opacity=".7"/></svg>';
+    const canvas=el('canvas','ma-chrome-canvas');canvas.setAttribute('aria-hidden','true');sculpture.append(canvas);stage.append(sculpture,el('div','ma-stage-crosshair'));
+    return stage;
   }
   function weekStrip(current) {
     const strip = el('ol', 'ma-week-strip'); strip.setAttribute('aria-label', 'Текущая неделя');
@@ -232,13 +247,13 @@
     if(screen==='health')healthScreen();else if(screen==='more')moreScreen();else if(screen==='tasks')tasksScreen();else{
       const current=today(),done=S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===current).length,remaining=S.tasks.filter(t=>!t.done&&scheduled(t,current)).length;
       const heading=el('div','ma-heading'),title=el('div');title.append(el('p','ma-eyebrow',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})),el('h1',null,'Сегодня'));
-      const progress=el('div','ma-day-progress'),ring=el('span','ma-progress-ring');ring.style.setProperty('--progress',(done+remaining?done/(done+remaining)*100:0)+'%');ring.setAttribute('aria-hidden','true');ring.append(el('span',null,done));const text=el('div');text.append(el('b',null,done+remaining?done+' из '+(done+remaining)+' выполнено':'План пока свободен'),el('span',null,remaining?remaining+(remaining===1?' дело впереди':remaining<5?' дела впереди':' дел впереди'):done?'На сегодня план выполнен':'Твой день — твои приоритеты'));progress.append(ring,text);progress.setAttribute('role','group');progress.setAttribute('aria-label',done+' выполнено, '+remaining+' осталось');heading.append(title,progress);home.append(heading,weekStrip(current));
+      const progress=el('div','ma-day-progress'),ring=el('span','ma-progress-ring');ring.style.setProperty('--progress',(done+remaining?done/(done+remaining)*100:0)+'%');ring.setAttribute('aria-hidden','true');ring.append(el('span',null,done));const text=el('div');text.append(el('b',null,done+remaining?done+' из '+(done+remaining)+' выполнено':'План пока свободен'),el('span',null,remaining?remaining+(remaining===1?' дело впереди':remaining<5?' дела впереди':' дел впереди'):done?'На сегодня план выполнен':'Твой день — твои приоритеты'));progress.append(ring,text);progress.setAttribute('role','group');progress.setAttribute('aria-label',done+' выполнено, '+remaining+' осталось');heading.append(title,progress);chromeStage.querySelector('.ma-heading')?.remove();chromeStage.append(heading);home.append(chromeStage,weekStrip(current));
       const grid=el('div','ma-grid');grid.append(taskPanel(current,done),habitPanel(current),focusPanel(S.tasks.filter(t=>!t.done)));home.append(grid,reviewPanel(),summaryPanel(current));const footer=el('div','ma-footer');footer.append(el('span',null,'Без спешки. По одному шагу.'),button('Данные и резервная копия',()=>go('data'),'ma-text-button'));home.append(footer);
-    }tick();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
+    }tick();window.MyDayChrome?.refresh();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
     if(motionAllowed())home.querySelectorAll('[data-key]').forEach(node=>{const old=previous.get(node.dataset.key),now=node.getBoundingClientRect();if(old&&Math.abs(old.top-now.top)>1)node.animate([{transform:'translateY('+(old.top-now.top)+'px)'},{transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})});
   }
   function tick(){const c=document.getElementById('ma-clock'),ms=S.myFocusEnd?Math.max(0,S.myFocusEnd-Date.now()):(S.myFocusRemaining??25*60e3);if(S.myFocusEnd&&ms===0){delete S.myFocusEnd;S.myFocusRemaining=0;save();toast('Фокус завершён. Время для перерыва.');render();return}if(c){const seconds=Math.ceil(ms/1000);c.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}}
-  function syncChrome(){let meta=document.querySelector('meta[name="theme-color"]');if(!meta){meta=el('meta');meta.name='theme-color';document.head.append(meta)}meta.content=document.documentElement.dataset.theme==='dark'?'#141817':'#f6f5f1'}
+  function syncChrome(){let meta=document.querySelector('meta[name="theme-color"]');if(!meta){meta=el('meta');meta.name='theme-color';document.head.append(meta)}meta.content=document.documentElement.dataset.theme==='dark'?'#080808':'#e9e9e7'}
   syncChrome();new MutationObserver(syncChrome).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   home.dataset.day=today();setInterval(()=>{tick();if(document.body.dataset.view==='hub'&&screen==='home'&&home.dataset.day!==today()){home.dataset.day=today();render()}},1000);
   new MutationObserver(render).observe(document.body,{attributes:true,attributeFilter:['data-view','data-tab']});window.addEventListener('pageshow',render);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();render()}});
@@ -247,4 +262,5 @@
   document.addEventListener('click',e=>{document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{if(!menu.contains(e.target))menu.open=false})});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('.ma-dialog[open]'))document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary')?.focus()})});
   try{history.replaceState({...history.state,mydayScreen:'home',mydayTab:tab},'')}catch(e){}render();
+  const sculptureScript=el('script');sculptureScript.src='./app/chrome.js';document.head.append(sculptureScript);
 })();

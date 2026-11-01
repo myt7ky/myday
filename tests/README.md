@@ -5,6 +5,7 @@ Install Playwright in your development environment, install its Chromium browser
 ```sh
 node tests/mobile.cjs
 node tests/daily.cjs
+node tests/chrome.cjs
 ```
 
 Optional environment variables:
@@ -19,5 +20,7 @@ The check serves repository files through Playwright request routing at a synthe
 `mobile.cjs` covers quick task entry, whitespace validation, completion and undo, task-linked focus timer, pause/reset and persistence, habit keyboard controls, duplicate habits, draft preservation, task filters, search, browser history, retained menu sections, supported currency symbols, long titles, both themes, and navigation/layout at 320, 360, 390, 430, 768, 1024 and 1440 pixels.
 
 `daily.cjs` covers a pinned main task, task editing and cancellation, preservation of completed substeps, planning tomorrow without changing deadlines, carry undo, evening reviews and tomorrow's priority, completed tasks, simplified navigation, effect preferences and system reduced motion, JSON backup export/import, timestamp-based daily-record merging, and responsive dialogs. It also generates light/dark overview screenshots with disposable sample records.
+
+`chrome.cjs` checks the default chrome theme, reuse of the same canvas/context through navigation and theme changes, actual sculpture motion, a static frame under reduced motion, context-loss fallback, startup without WebGL, and task completion after graphics loss. It generates dark desktop/mobile screenshots. The graphics are procedural WebGL and SVG; no remote assets or libraries are used.
 
 Limits: service-worker installation/offline behavior, remote AI and cloud APIs, and physical mobile keyboards are not covered. Screenshot records are test fixtures, not user records.
