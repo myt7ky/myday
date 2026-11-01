@@ -37,13 +37,13 @@
   const home = el('div', 'ma-home'); home.id = 'ma-home'; document.body.append(home);
   const chromeStage=createChromeStage();
   const nav = el('nav', 'ma-nav'); nav.setAttribute('aria-label', 'Основная навигация'); document.body.append(nav);
-  const brand = button('', () => go('home'), 'ma-nav-brand'); brand.append(el('span', 'ma-mark'), el('b', null, 'myday')); brand.setAttribute('aria-label', 'MyDay — сегодня'); nav.append(brand);
+  const brand = button('', () => go('home'), 'ma-nav-brand'); brand.append(el('span', 'ma-mark'), el('b', null, window.MYDAY_DEMO?'myday / demo':'myday')); brand.setAttribute('aria-label', 'MyDay — сегодня'); nav.append(brand);
   [['home', 'Сегодня'], ['tasks', 'Дела'], ['buys', 'Деньги'], ['health', 'Здоровье'], ['more', 'Ещё']].forEach(([id, label]) => { const b = button('', () => go(id), 'ma-nav-item'); b.dataset.page = id; b.append(icon(id), el('span', null, label)); nav.append(b); });
   const localNote = el('div', 'ma-local-note'); localNote.append(el('i'), el('span', null, 'Твой личный трекер')); nav.append(localNote);
   let screen = 'home', taskFilter = 'today', taskDraft = '', habitDraft = '', undoTask = null, taskLimit=50,pendingBudget=false;
   const retired=new Set(['ov','forecast','rpg','detective','plan','streaks','ai','habits','week']);
   const previousShow=show;
-  show=function(){if(tab==='buys'||tab==='budget'){pendingBudget=tab==='budget';tab='buys';screen='buys';window.setView('hub',false);render();if(pendingBudget&&window.MyDayInsights?.ready){pendingBudget=false;window.MyDayInsights.openBudget()}return}if(retired.has(tab)||tab==='tasks'){tab='tasks';screen='tasks';window.setView('hub',false);render();return}if(tab==='analytics'&&recordDayCount()<7){screen='more';window.setView('hub',false);render();return}previousShow()};
+  show=function(){if(tab==='buys'||tab==='budget'){pendingBudget=tab==='budget';tab='buys';screen='buys';window.setView('hub',false);render();if(pendingBudget&&window.MyDayInsights?.ready){pendingBudget=false;window.MyDayInsights.selectTab('budget');render()}return}if(retired.has(tab)||tab==='tasks'){tab='tasks';screen='tasks';window.setView('hub',false);render();return}if(tab==='analytics'&&recordDayCount()<7){screen='more';window.setView('hub',false);render();return}previousShow()};
   for(let i=GROUPS.length-1;i>=0;i--){GROUPS[i][1]=GROUPS[i][1].filter(([id])=>!retired.has(id));if(!GROUPS[i][1].length)GROUPS.splice(i,1)}
   function tomorrow(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+1);return ds(d)}
   function dayRecord(date){return S.mydayDaily?.[date]||{}}
@@ -57,14 +57,14 @@
   const moneyTabs = new Set(['buys', 'budget', 'ai']);
   function go(id) {
     if(retired.has(id))id='tasks';
-    if (['home', 'tasks', 'buys', 'health', 'more'].includes(id)) { screen = id;if(id==='tasks'||id==='buys')tab=id;window.setView('hub'); }
+    if (['home', 'tasks', 'buys', 'health', 'more','data-tools'].includes(id)) { screen = id;if(id==='tasks'||id==='buys')tab=id;window.setView('hub'); }
     else { screen = 'home'; window.setView('tracker'); tab = id; show(); }
     try { history.replaceState({...history.state,mydayScreen:screen,mydayTab:id},''); } catch(e) {}
     document.body.classList.remove('nav-open'); window.scrollTo({top:0,behavior:'instant'}); render();
     requestAnimationFrame(()=>{if(motionAllowed())home.animate([{opacity:.35,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:230,easing:'cubic-bezier(.2,.8,.2,1)'})});
   }
   function updateNav() {
-    const current = document.body.dataset.view === 'hub' ? screen : healthTabs.has(tab) ? 'health' : moneyTabs.has(tab) ? 'buys' : tab === 'tasks' ? 'tasks' : 'more';
+    const current = document.body.dataset.view === 'hub' ? (screen==='data-tools'?'more':screen) : healthTabs.has(tab) ? 'health' : moneyTabs.has(tab) ? 'buys' : tab === 'tasks' ? 'tasks' : 'more';
     nav.querySelectorAll('[data-page]').forEach(b => { const active = b.dataset.page === current; b.classList.toggle('active', active); if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   }
   function persist() { save(); render(); }
@@ -235,6 +235,7 @@
     const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПОД РУКОЙ'),el('h1',null,'Твоё пространство'),el('p','ma-description','Только то, что помогает двигаться в своём темпе.'));home.append(head);
     const grid=el('div','ma-menu-grid');
     [['Планы',[['goals','Цели'],['budget','Бюджет']]],['Практика',[['photos','Фото-прогресс'],['guides','Упражнения'],['strength','Рабочие веса']]],['Настройки',[['data','Данные и резервная копия']]]].forEach(([name,tabs])=>{const group=el('div','ma-menu-group');group.append(el('h2',null,name));tabs.forEach(([id,label])=>{if(!GROUPS.some(g=>g[1].some(x=>x[0]===id)))return;const b=button('',()=>go(id),'ma-menu-link');b.dataset.tab=id;b.append(el('span',null,label),icon('arrow'));group.append(b)});grid.append(group)});home.append(grid);
+    const tools=button('Тестовые данные и очистка',()=>go('data-tools'),'ma-menu-link');tools.append(icon('arrow'));home.append(tools);
     const days=recordDayCount();
     const stats=el('div','ma-stats-gate');stats.append(icon('tasks'),el('div',null,days>=7?'Есть история, которую можно посмотреть':'Статистика без поспешных выводов'));
     if(days>=7){const b=button('Открыть статистику',()=>go('analytics'),'ma-text-button');b.dataset.tab='analytics';stats.append(b)}else stats.append(el('small',null,'Появится после 7 дней записей · '+days+' / 7'));home.append(stats);
@@ -245,7 +246,8 @@
     updateNav();syncMotion();if(document.body.dataset.view!=='hub'){if(window.MyDayInsights?.ready)window.MyDayInsights.decorateLegacy(tab);return}
     const previous=home.dataset.screen===screen?new Map([...home.querySelectorAll('[data-key]')].map(node=>[node.dataset.key,node.getBoundingClientRect()])):new Map();home.dataset.screen=screen;
     const active=document.activeElement,focusId=active?.id,selection=typeof active?.selectionStart==='number'?[active.selectionStart,active.selectionEnd]:null;home.replaceChildren(topbar());
-    if(screen==='health')healthScreen();else if(screen==='more')moreScreen();else if(screen==='tasks')tasksScreen();else if(screen==='buys'){if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.finance());else home.append(el('p',null,'Загрузка расходов…'))}else{
+    if(window.MYDAY_DEMO&&window.MyDayInsights?.ready)home.append(window.MyDayInsights.demoBanner());
+    if(screen==='data-tools'){if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.dataTools())}else if(screen==='health')healthScreen();else if(screen==='more')moreScreen();else if(screen==='tasks')tasksScreen();else if(screen==='buys'){if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.finance());else home.append(el('p',null,'Загрузка расходов…'))}else{
       const current=today(),done=S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===current).length,remaining=S.tasks.filter(t=>!t.done&&scheduled(t,current)).length;
       const heading=el('div','ma-heading'),title=el('div');title.append(el('p','ma-eyebrow',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})),el('h1',null,'Сегодня'));
       const progress=el('div','ma-day-progress'),ring=el('span','ma-progress-ring');ring.style.setProperty('--progress',(done+remaining?done/(done+remaining)*100:0)+'%');ring.setAttribute('aria-hidden','true');ring.append(el('span',null,done));const text=el('div');text.append(el('b',null,done+remaining?done+' из '+(done+remaining)+' выполнено':'План пока свободен'),el('span',null,remaining?remaining+(remaining===1?' дело впереди':remaining<5?' дела впереди':' дел впереди'):done?'На сегодня план выполнен':'Твой день — твои приоритеты'));progress.append(ring,text);progress.setAttribute('role','group');progress.setAttribute('aria-label',done+' выполнено, '+remaining+' осталось');heading.append(title,progress);chromeStage.querySelector('.ma-heading')?.remove();chromeStage.append(heading);home.append(chromeStage,weekStrip(current));
@@ -258,7 +260,7 @@
   syncChrome();new MutationObserver(syncChrome).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   home.dataset.day=today();setInterval(()=>{tick();if(document.body.dataset.view==='hub'&&screen==='home'&&home.dataset.day!==today()){home.dataset.day=today();render()}},1000);
   new MutationObserver(render).observe(document.body,{attributes:true,attributeFilter:['data-view','data-tab']});window.addEventListener('pageshow',render);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();render()}});
-  window.addEventListener('popstate',e=>{screen=['home','tasks','buys','health','more'].includes(e.state?.mydayScreen)?e.state.mydayScreen:'home';if(e.state?.v==='tracker'&&GROUPS.some(g=>g[1].some(x=>x[0]===e.state.mydayTab))){tab=e.state.mydayTab;show()}render()});
+  window.addEventListener('popstate',e=>{screen=['home','tasks','buys','health','more','data-tools'].includes(e.state?.mydayScreen)?e.state.mydayScreen:'home';if(e.state?.v==='tracker'&&GROUPS.some(g=>g[1].some(x=>x[0]===e.state.mydayTab))){tab=e.state.mydayTab;show()}render()});
   document.addEventListener('pointerdown',e=>{if(!motionAllowed())return;const b=e.target.closest('.ma-home button,.ma-nav button');if(!b||b.disabled)return;const r=b.getBoundingClientRect(),ripple=el('span','ma-ripple');ripple.setAttribute('aria-hidden','true');ripple.style.left=(e.clientX-r.left)+'px';ripple.style.top=(e.clientY-r.top)+'px';b.append(ripple);setTimeout(()=>ripple.remove(),500)});
   document.addEventListener('click',e=>{document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{if(!menu.contains(e.target))menu.open=false})});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('.ma-dialog[open]'))document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary')?.focus()})});
@@ -267,6 +269,14 @@
   const insightScript=el('script');insightScript.src='./app/insights.js';insightScript.onload=()=>{window.MyDayInsights.configure({state:()=>S,categories:()=>CATS,el,button,icon,iconButton,panel,makeDialog,labeled,money,today,ds,go,render,motionAllowed,sleepDuration,
     commitExpense(item,editing){const i=S.items.findIndex(x=>x.id===item.id);if(editing&&i<0){toast('Эта покупка уже удалена');return}if(i>=0)S.items[i]=item;else S.items.push(item);delete S.analysis[item.id];save();cloudItem(item);cloudAnalysis()},
     removeExpense(id){S.items=S.items.filter(x=>x.id!==id);delete S.analysis[id];save();cloudDel(id);cloudAnalysis()},
-    saveBudget(value){S.limit=value;const input=document.getElementById('limit');if(input)input.value=value||'';save();cloudSettings(true)}
-  });render();if(pendingBudget){pendingBudget=false;window.MyDayInsights.openBudget()}};document.head.append(insightScript);
+    saveBudget(value){S.limit=value;const input=document.getElementById('limit');if(input)input.value=value||'';save();cloudSettings(true)},
+    updateState(fn){fn(S);save()},
+    async demoMode(active,reset=false){if(reset){localStorage.setItem('spend-demo-v1',JSON.stringify(window.MyDayDemo.seed()));try{await window.MyDayDemo.seedPhotos()}catch(error){toast('Примеры заполнены, но хранилище фото недоступно')}}if(active)localStorage.setItem('myday-demo-mode','1');else localStorage.removeItem('myday-demo-mode');const url=new URL(location.href);url.searchParams.delete('demo');location.replace(url.href)},
+    async clearData(demoOnly){
+      const clearPhotos=name=>new Promise((resolve,reject)=>{const req=indexedDB.open(name,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('p'))req.result.createObjectStore('p',{keyPath:'id'})};req.onerror=()=>reject(req.error);req.onsuccess=()=>{const database=req.result,tx=database.transaction('p','readwrite');tx.objectStore('p').clear();tx.oncomplete=()=>{database.close();resolve()};tx.onerror=()=>{database.close();reject(tx.error)}}});
+      await clearPhotos('myday-demo-photos');if(!demoOnly)await clearPhotos('myday-photos');
+      if(demoOnly){localStorage.removeItem('spend-demo-v1');if(window.MYDAY_DEMO)localStorage.setItem('spend-demo-v1',JSON.stringify({items:[],tasks:[],gym:[],body:[],meals:[],sleep:[],habits:[],tpls:[],goals:[],foodDb:[],budgets:{},recurring:[],analysis:{},mydaySavings:[]}))}else{for(const key of Object.keys(localStorage)){if(key==='spend-v1'||key==='spend-demo-v1'||key.startsWith('myday-'))localStorage.removeItem(key)}localStorage.setItem('myday-sync-disabled','1')}
+      const url=new URL(location.href);url.searchParams.delete('demo');location.replace(url.href)
+    }
+  });render();if(pendingBudget){pendingBudget=false;window.MyDayInsights.selectTab('budget');render()}};document.head.append(insightScript);
 })();

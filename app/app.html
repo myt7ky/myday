@@ -418,6 +418,7 @@ input,select{padding:8px 10px;min-height:40px!important;margin-top:3px;border-ra
     <div id="searchResults" class="search-results"><div class="empty">Начните вводить запрос.</div></div>
   </div>
 </div>
+<script src="./app/demo.js"></script>
 <script>
 /* Standalone Claude API bridge. The API key stays on the server. */
 window.MYDAY_AI_ENDPOINT=window.MYDAY_AI_ENDPOINT||localStorage.getItem('myday-ai-endpoint')||'/api/ai';
@@ -480,7 +481,7 @@ const localPurchaseAnalysis=i=>{
   const alt=i.amount?['отложить '+Math.round(i.amount*0.5)+' '+S.cur+' в резерв','сравнить цену минимум в 2 местах','если покупка необязательная — перенести её на 48 часов']:['не покупать повторно без проверки пользы'];
   return{verdict,pros,cons,harsh:verdict==='зря'?'Покупка выглядит слабой по соотношению цены и пользы.':verdict==='спорно'?'Не критичная трата, но её стоит контролировать, особенно если она повторяется.':'Похоже на оправданную трату, если она соответствует вашему плану.',alt:alt.join('; ')};
 };
-const KEY='spend-v1';
+const KEY=window.MYDAY_DEMO?'spend-demo-v1':'spend-v1';
 let S={items:[],cur:'RUB',analysis:{},overall:null,limit:0,synced:false,tasks:[],gym:[],body:[],meals:[],sleep:[],foodDb:[],budgets:{},recurring:[],prof:{age:'',sex:'м',h:'',act:'1.55',goal:'набор массы',days:'3'}},mode='week',tab='ov',editId=null,sample=null,dl=null,db=null,P='';
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s)S={...S,...s}}catch(e){}
 S.goals=Array.isArray(S.goals)?S.goals:[];S.goalsDirty=false;
@@ -1664,7 +1665,7 @@ $('eco').checked=!!S.eco;$('eco').onchange=()=>{S.eco=$('eco').checked;save()};
 /* Daily planning records are merged by date and update time. */
 function mergeMydayDaily(local,incoming){const out={};for(const source of [local,incoming]){if(!source||typeof source!=='object'||Array.isArray(source))continue;Object.entries(source).forEach(([date,value])=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!value||typeof value!=='object'||Array.isArray(value))return;const record={updatedAt:Number(value.updatedAt)||0};if(typeof value.note==='string')record.note=value.note.slice(0,1000);if(typeof value.reviewedAt==='string')record.reviewedAt=value.reviewedAt.slice(0,30);if(value.mainTaskId==null||typeof value.mainTaskId==='number'||typeof value.mainTaskId==='string')record.mainTaskId=value.mainTaskId??null;if(!out[date]||record.updatedAt>=out[date].updatedAt)out[date]=record})}return out}
 /* full backup */
-$('jExp').onclick=async()=>{const o={v:2,order:S.order,name:S.name,acne:S.acne,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,sleep:S.sleep,foodDb:S.foodDb,goals:S.goals,budgets:S.budgets,recurring:S.recurring,habits:S.habits,tpls:S.tpls,weekFocus:S.weekFocus,rpg:S.rpg,wheel:S.wheel,maxes:S.maxes,snake:S.snake,mydayDaily:S.mydayDaily,mydayPreferences:S.mydayPreferences};
+$('jExp').onclick=async()=>{const o={v:2,order:S.order,name:S.name,acne:S.acne,cur:S.cur,limit:S.limit,prof:S.prof,items:S.items,tasks:S.tasks,gym:S.gym,body:S.body,meals:S.meals,sleep:S.sleep,foodDb:S.foodDb,goals:S.goals,budgets:S.budgets,recurring:S.recurring,habits:S.habits,tpls:S.tpls,weekFocus:S.weekFocus,rpg:S.rpg,wheel:S.wheel,maxes:S.maxes,snake:S.snake,mydayDaily:S.mydayDaily,mydayPreferences:S.mydayPreferences,mydaySavings:S.mydaySavings,mydayFinance:S.mydayFinance,prog:S.prog};
   try{if(await saveFile('backup-'+today()+'.json',JSON.stringify(o))){S.lastBackup=today();save();toast('Копия сохранена');renderAll()}}catch(e){if(!e||e.code!=='declined')toast('Не удалось сохранить файл')}};
 $('jImpBtn').onclick=()=>$('jImp').click();
 $('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=new FileReader();
@@ -1682,6 +1683,7 @@ $('jImp').onchange=()=>{const file=$('jImp').files[0];if(!file)return;const fr=n
     if(o.maxes&&typeof o.maxes==='object')S.maxes={...o.maxes,...(S.maxes||{})};if(typeof o.name==='string'&&!S.name)S.name=o.name.trim().slice(0,30);if(o.order&&typeof o.order==='object'&&!S.order)S.order=o.order;if(o.acne&&typeof o.acne==='object'){const a=S.acne=S.acne&&typeof S.acne==='object'?S.acne:{};a.days=Object.assign({},o.acne.days&&typeof o.acne.days==='object'?o.acne.days:{},a.days||{});['meals','pim'].forEach(k=>{a[k]=Array.isArray(a[k])?a[k]:[];const h=new Set(a[k].map(x=>x.id));(Array.isArray(o.acne[k])?o.acne[k]:[]).filter(x=>x&&x.id&&x.date&&!h.has(x.id)).slice(0,500).forEach(x=>a[k].push(x))})};
     if(o.wheel&&typeof o.wheel==='object'&&Array.isArray(o.wheel.sets)){const w=S.wheel||{};const have=new Set((w.sets||[]).map(x=>x.id));S.wheel={...o.wheel,...w,sets:[...(w.sets||[]),...o.wheel.sets.filter(x=>x&&x.id&&Array.isArray(x.items)&&!have.has(x.id)).slice(0,30)],history:[...(w.history||[]),...(o.wheel.history||[])].slice(0,30)}};
     S.mydayDaily=mergeMydayDaily(S.mydayDaily,o.mydayDaily);if(o.mydayPreferences&&typeof o.mydayPreferences.motion==='boolean')S.mydayPreferences={...S.mydayPreferences,motion:o.mydayPreferences.motion};
+    if(Array.isArray(o.mydaySavings)){S.mydaySavings=Array.isArray(S.mydaySavings)?S.mydaySavings:[];const have=new Set(S.mydaySavings.map(g=>g.id));o.mydaySavings.filter(g=>g&&g.id&&typeof g.title==='string'&&Number(g.target)>0&&Array.isArray(g.entries)&&g.entries.every(e=>e&&typeof e.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&Number.isFinite(e.amount))).forEach(g=>{if(!have.has(g.id)){have.add(g.id);S.mydaySavings.push(g)}})}if(o.mydayFinance&&typeof o.mydayFinance.months==='object'){S.mydayFinance={months:{...o.mydayFinance.months,...(S.mydayFinance?.months||{})}}}if(o.prog&&typeof o.prog.id==='string'&&!S.prog)S.prog=o.prog;
     if(Array.isArray(o.goals))S.goals=o.goals.filter(g=>g&&g.id&&g.metric&&Number(g.target)>0).slice(0,20);
     save();renderAll();toast('Загружено записей: '+add.length);for(const [pre,x] of add)await gcl(pre,x)}
     catch(e){toast('Не удалось прочитать файл')}$('jImp').value=''};
@@ -1720,7 +1722,7 @@ S.items.forEach(i=>{if(!i.date)i.date=today()});
 (async()=>{
   try{sample=await claude.use('sample')}catch(e){}
   try{dl=await claude.use('downloads')}catch(e){}
-  try{const d=await claude.use('db'),u=await claude.use('user'),id=u&&await u.id();if(d&&id){db=d;P='data/users/'+id;connect()}}catch(e){db=null}
+  try{if(window.MYDAY_DEMO||localStorage.getItem('myday-sync-disabled')==='1')throw new Error('Local mode');const d=await claude.use('db'),u=await claude.use('user'),id=u&&await u.id();if(d&&id){db=d;P='data/users/'+id;connect()}}catch(e){db=null}
   setSync();renderAll()})();
 show();
 </script><script>
@@ -1839,11 +1841,11 @@ function rtTick(){const s=Math.max(0,Math.ceil((rtEnd-Date.now())/1000));rtOut()
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
 const sKey=()=>LS('myday-sync-key')||'',sUrl=()=>LS('myday-sync-url')||'/api/sync',payload=()=>{const o={...S};['analysis','overall','synced','goalsDirty'].forEach(k=>delete o[k]);return JSON.stringify(o)};
 async function api(method,body){const r=await fetch(sUrl(),{method,headers:{'Content-Type':'application/json','x-sync-key':encodeURIComponent(sKey())},body:body?JSON.stringify(body):undefined}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка '+r.status);return d}
-const AR=['items','tasks','gym','body','meals','sleep','goals','habits','tpls','recurring','foodDb'];
+const AR=['items','tasks','gym','body','meals','sleep','goals','habits','tpls','recurring','foodDb','mydaySavings'];
 function adopt(c){Object.keys(c).forEach(k=>{S[k]=c[k]});AR.forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});save();try{fillProf();$('limit').value=S.limit||'';$('cur').value=S.cur}catch(e){}}
-function merge(c){AR.forEach(k=>{if(Array.isArray(c[k])){const h=new Set((S[k]||[]).map(x=>x.id||x.n));S[k]=S[k]||[];c[k].forEach(x=>{if(x&&!h.has(x.id||x.n))S[k].push(x)})}});S.budgets={...(c.budgets||{}),...(S.budgets||{})};S.weekFocus={...(c.weekFocus||{}),...(S.weekFocus||{})};S.mydayDaily=mergeMydayDaily(S.mydayDaily,c.mydayDaily);if(!S.limit&&c.limit)S.limit=c.limit;save()}
+function merge(c){AR.forEach(k=>{if(Array.isArray(c[k])){const h=new Set((S[k]||[]).map(x=>x.id||x.n));S[k]=S[k]||[];c[k].forEach(x=>{if(x&&!h.has(x.id||x.n))S[k].push(x)})}});S.mydayFinance={months:{...(c.mydayFinance?.months||{}),...(S.mydayFinance?.months||{})}};S.budgets={...(c.budgets||{}),...(S.budgets||{})};S.weekFocus={...(c.weekFocus||{}),...(S.weekFocus||{})};S.mydayDaily=mergeMydayDaily(S.mydayDaily,c.mydayDaily);if(!S.limit&&c.limit)S.limit=c.limit;save()}
 let busy=false;const st=m=>{const e=$('sy_st');if(e)e.textContent=m};
-async function doSync(manual){if(!sKey()||busy)return;busy=true;try{
+async function doSync(manual){if(window.MYDAY_DEMO||LS('myday-sync-disabled')==='1'||!sKey()||busy)return;busy=true;try{
  const last=LS('myday-sync-last'),changed=payload()!==last,c=await api('GET'),at=+LS('myday-sync-at')||0;let push=changed;
  if(c.data&&c.updated>at){if(!changed){adopt(JSON.parse(c.data));LS('myday-sync-at',String(c.updated));LS('myday-sync-last',payload());push=false;renderAll()}else{merge(JSON.parse(c.data));push=true;renderAll()}}
  if(push){const now=Date.now(),out=payload();await api('PUT',{data:out,updated:now});LS('myday-sync-at',String(now));LS('myday-sync-last',out)}
@@ -1851,7 +1853,7 @@ async function doSync(manual){if(!sKey()||busy)return;busy=true;try{
 }catch(e){st('⚠️ '+e.message);if(manual)toast('Синхронизация не удалась: '+e.message)}busy=false}
 const sc=el('div','card');sc.innerHTML='<h2>☁️ Синхронизация между устройствами</h2><p class="muted" style="margin-top:0">Введите одинаковый секретный ключ (не короче 12 символов) на всех устройствах. Нужен сервер из папки api/ (Vercel + Upstash). При изменении данные отправляются сами.</p><div class="fg"><label class="f2">Ключ синхронизации<input id="sy_key" type="password" autocomplete="off" maxlength="80"></label><label class="f2">Адрес сервера<input id="sy_url" placeholder="/api/sync или https://имя.vercel.app/api/sync"></label></div><div class="row" style="margin-top:10px"><button class="btn" id="sy_go">Включить и синхронизировать</button><button class="btn sec" id="sy_off">Отключить</button></div><div class="meta" id="sy_st" style="margin-top:8px"></div>';
 $('t-data').appendChild(sc);$('sy_key').value=sKey();$('sy_url').value=LS('myday-sync-url')||'';st(sKey()?'Включена':'Выключена');
-$('sy_go').onclick=()=>{const k=$('sy_key').value.trim();if(k.length<12){toast('Ключ слишком короткий: минимум 12 символов');return}LS('myday-sync-key',k);const u=$('sy_url').value.trim();LS('myday-sync-url',u||null);doSync(true)};
+$('sy_go').onclick=()=>{const k=$('sy_key').value.trim();if(k.length<12){toast('Ключ слишком короткий: минимум 12 символов');return}LS('myday-sync-disabled',null);LS('myday-sync-key',k);const u=$('sy_url').value.trim();LS('myday-sync-url',u||null);doSync(true)};
 $('sy_off').onclick=()=>{['myday-sync-key','myday-sync-last','myday-sync-at'].forEach(k=>LS(k,null));$('sy_key').value='';st('Выключена')};
 setInterval(()=>{if(sKey()&&payload()!==LS('myday-sync-last'))doSync()},15000);setInterval(()=>{if(!document.hidden)doSync()},90000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)doSync()});
 
@@ -2647,7 +2649,7 @@ function drawProg(){const s=sp;s.innerHTML='';const pr=cur(),P=pr&&P_(pr.id);
  c=E('div','card');const b2=E('button','btn sec','Сменить программу');b2.type='button';b2.onclick=()=>{if(!b2.dataset.a){b2.dataset.a='1';b2.textContent='Точно сменить? Прогресс сбросится';setTimeout(()=>{b2.dataset.a='';b2.textContent='Сменить программу'},3500);return}S.prog=null;save();done={};drawProg()};c.appendChild(b2);s.appendChild(c)}
 
 /* ---------- фото-прогресс ---------- */
-const db=new Promise((res,rej)=>{try{const r=indexedDB.open('myday-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const db=new Promise((res,rej)=>{try{const r=indexedDB.open(window.MYDAY_DEMO?'myday-demo-photos':'myday-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
 const tx=(m,f)=>db.then(d=>new Promise((res,rej)=>{const t=d.transaction('p',m),r=f(t.objectStore('p'));t.oncomplete=()=>res(r&&r.result);t.onerror=()=>rej(t.error)}));
 const shrink=f=>new Promise((res,rej)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const k=Math.min(1,1100/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),'image/jpeg',.82)};im.onerror=()=>rej();im.src=u});
 const AN=['Спереди','Сбоку','Сзади'];let urls=[],fa='Все',selA=null,selB=null;
