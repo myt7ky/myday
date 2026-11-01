@@ -3,14 +3,14 @@
   'use strict';
   const link = document.createElement('link');
   link.rel = 'stylesheet'; link.href = './app/redesign.css'; document.head.append(link);
-  document.title = 'MyApp — твой день'; document.querySelector('.brand h1').textContent='MyApp';
-  if (!localStorage.getItem('myday-theme')) document.documentElement.dataset.theme = 'dark';
+  document.title = 'MyDay — твой день'; document.querySelector('.brand h1').textContent='MyDay';
   const home = el('div', 'ma-home'); home.id = 'ma-home'; document.body.append(home);
   const nav = el('nav', 'ma-nav'); nav.setAttribute('aria-label', 'Основная навигация'); document.body.append(nav);
-  const icons = {home:'◈', tasks:'✓', buys:'↗', gym:'⌁', data:'☷'};
-  const go = id => { if (id === 'home') window.setView('hub'); else {window.setView('tracker'); tab=id; show();} render(); };
+  const paths = {home:'m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',tasks:'m9 6 2 2 4-4M9 16l2 2 4-4M3 7h1M3 17h1M18 7h3M18 17h3',buys:'M3 6h18v14H3ZM3 10h18M15 15h3M6 6V3h12v3',gym:'M6 4v16M3 8v8M6 12h12M18 4v16M21 8v8',data:'M4 6h16M4 12h16M4 18h16'};
+  const icon = id => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+paths[id]+'"/></svg>';
+  const go = id => { if (id === 'home') window.setView('hub'); else {window.setView('tracker'); tab=id; show();} window.scrollTo({top:0,behavior:'instant'}); render(); };
   [['home','Обзор'],['tasks','Дела'],['buys','Деньги'],['gym','Зал'],['data','Ещё']].forEach(([id,name])=>{
-    const b=el('button'); b.innerHTML=`<span aria-hidden="true">${icons[id]}</span>${name}`;
+    const b=el('button'); b.innerHTML=`<span aria-hidden="true">${icon(id)}</span>${name}`;
     b.onclick=()=>go(id); b.dataset.page=id; nav.append(b);
   });
   const button=(label,fn,cls='ma-button')=>{const b=el('button',cls,label);b.type='button';b.onclick=fn;return b};
@@ -21,17 +21,18 @@
     nav.querySelectorAll('button').forEach(b=>{const active=b.dataset.page===(document.body.dataset.view==='hub'?'home':tab); b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
     if(document.body.dataset.view!=='hub')return;
     home.replaceChildren();
-    const top=el('div','ma-top');top.append(el('b','ma-brand','myapp'),el('span','ma-date',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})));
+    const top=el('div','ma-top');top.append(el('b','ma-brand','myday'),el('span','ma-date',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})));
     top.append(button(document.documentElement.dataset.theme==='dark'?'☀':'☾',()=>{const v=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=v;localStorage.setItem('myday-theme',v);render()},'ma-theme'));
     top.lastChild.setAttribute('aria-label','Переключить тему');home.append(top);
     const hero=el('div','ma-hero'),copy=el('div','ma-copy');copy.append(el('div','ma-eyebrow',S.name?'ТВОЙ ДЕНЬ, '+S.name.toUpperCase():'МЕНЬШЕ ШУМА. БОЛЬШЕ ДЕЛА.'));
-    const heading=el('h1');heading.innerHTML='Маленькие шаги.<br><em>Большой прогресс.</em>';copy.append(heading,el('p',null,'Собери главное в одном месте. Начни с одного дела.'));
-    copy.append(button('+ Добавить дело',()=>go('tasks')));hero.append(copy);const art=el('img','ma-art');art.src='./assets/hero.webp';art.alt='Стеклянная стрелка на ступенях';hero.append(art);home.append(hero);
+    const heading=el('h1');heading.innerHTML='Сегодня —<br><em>в твоём ритме.</em>';copy.append(heading,el('p',null,'Главное на день. Без лишней суеты.'));
+    copy.append(button('+ Добавить дело',()=>{document.getElementById('ma-task-title').focus()}));hero.append(copy);const art=el('img','ma-art');art.src='./assets/hero.webp';art.alt='';art.setAttribute('aria-hidden','true');hero.append(art);home.append(hero);
     const current=today(),month=current.slice(0,7),open=S.tasks.filter(t=>!t.done),due=open.filter(t=>!t.due||t.due.slice(0,10)<=current),done=S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===current).length;
     const spent=S.items.filter(i=>i.date?.startsWith(month)).reduce((n,i)=>n+(Number(i.amount)||0),0),hs=habits(),hc=hs.filter(h=>!!h.log?.[current]).length;
     const stats=el('div','ma-stats');[[String(due.length),'Дел в фокусе','tasks'],[fmt(spent),'Расходы за месяц','buys'],[`${hc} / ${hs.length}`,'Привычки сегодня',null],[String(done),'Дел завершено сегодня','tasks']].forEach(([value,label,id])=>{const c=button('',()=>id?go(id):document.getElementById('ma-habits').scrollIntoView({behavior:'smooth'}),'ma-stat');c.append(el('span',null,label),el('strong',null,value));stats.append(c)});home.append(stats);
     const grid=el('div','ma-grid'),left=el('div'),right=el('div');grid.append(left,right);home.append(grid);
     const tasks=card('Главное сегодня',button('Все дела ↗',()=>go('tasks'),'ma-link'));
+    const quickTask=el('form','ma-task-form'),taskInput=el('input');taskInput.id='ma-task-title';taskInput.placeholder='Что нужно сделать?';taskInput.maxLength=100;taskInput.required=true;taskInput.setAttribute('aria-label','Новое дело');const taskSubmit=el('button','ma-button','+');taskSubmit.type='submit';taskSubmit.setAttribute('aria-label','Добавить дело');quickTask.append(taskInput,taskSubmit);quickTask.onsubmit=e=>{e.preventDefault();const title=taskInput.value.trim();if(!title)return;const t={id:Date.now(),done:false,title,due:'',prio:'обычная',tag:''};S.tasks.push(t);upd(t);render();toast('Дело добавлено');assessTask(t);document.getElementById('ma-task-title')?.focus()};tasks.append(quickTask);
     if(!due.length)tasks.append(el('p','ma-empty','Здесь спокойно. Добавь дело или выбери время для себя.'));
     due.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).slice(0,5).forEach(t=>{
       const row=el('div','ma-item'),check=button('',()=>{});check.onclick=()=>{t.done=true;t.doneAt=nowLocal(0);upd(t);render()};check.className='ma-check';check.setAttribute('aria-label','Завершить: '+t.title);

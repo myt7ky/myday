@@ -23,3 +23,20 @@ body[data-view=tracker] main{padding-bottom:130px}.today-hero{background:var(--p
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 :root body[data-view]{--bg:var(--ma-bg)!important;--panel:var(--ma-panel)!important;--panel2:var(--ma-panel2)!important;--text:var(--ma-text)!important;--muted:var(--ma-muted)!important;--border:var(--ma-border)!important;--accent:#7956d8!important;--navy:#7956d8!important;--sx:#7956d8!important;--grad:#bfa5fc!important}
 :root[data-theme=dark] body[data-view]{--accent:#bfa5fc!important;--navy:#bfa5fc!important;--sx:#bfa5fc!important}
+
+/* Mobile dashboard: compact overview, visible tasks and safe touch targets. */
+.ma-nav svg{display:block;width:23px;height:23px}.ma-nav button{font:inherit;font-size:11px;font-weight:600;gap:5px;cursor:pointer;touch-action:manipulation}.ma-nav button span{line-height:1}.ma-nav button.active{background:color-mix(in srgb,var(--accent) 13%,var(--panel))}
+.ma-task-form{display:flex;gap:8px;margin-bottom:16px}.ma-task-form input{flex:1;min-width:0;margin:0;font-size:16px;min-height:48px;background:var(--panel2)}.ma-task-form button{min-width:48px;font-size:24px;padding:6px}.ma-button,.ma-check,.ma-shortcut{touch-action:manipulation}.ma-theme{flex-shrink:0}.ma-home input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.ma-stat{font-family:inherit}.ma-stat strong{font-variant-numeric:tabular-nums}.ma-check{cursor:pointer}.ma-item:has(.ma-check.checked) b{color:var(--muted)}
+@media(max-width:700px){
+ body[data-view]{padding-bottom:0}
+ .ma-home{padding:18px 16px calc(104px + env(safe-area-inset-bottom))}
+ .ma-top{display:grid;grid-template-columns:1fr 44px;gap:4px 12px;margin-bottom:18px}.ma-brand{grid-column:1;font-size:25px;letter-spacing:-1px}.ma-date{grid-column:1;grid-row:2;font-size:12px;text-transform:capitalize}.ma-theme{grid-column:2;grid-row:1 / 3}
+ .ma-hero{min-height:0;margin-bottom:14px;border-radius:24px;background:linear-gradient(125deg,#242035,#15121e);border-color:#393047}
+ .ma-copy{padding:24px;width:100%}.ma-eyebrow{font-size:9px;letter-spacing:.1em;max-width:100%;overflow-wrap:anywhere}.ma-copy h1{font-size:34px;line-height:1.07;margin:14px 0 12px;letter-spacing:-.045em}.ma-copy h1 br{display:none}.ma-copy h1 em{display:block}.ma-copy p{font-size:13px;margin:0 0 18px;max-width:none}.ma-copy .ma-button{min-height:46px;padding:12px 18px}.ma-art{display:none}
+ .ma-stats{gap:8px;margin-bottom:18px}.ma-stat{padding:13px 14px;border-radius:16px;min-height:88px}.ma-stat span{font-size:11px;line-height:1.4}.ma-stat strong{font-size:24px;line-height:1.15;margin-top:7px;letter-spacing:-.7px}
+ .ma-card{padding:18px;border-radius:22px;margin-bottom:14px}.ma-card-head{margin-bottom:12px;gap:8px}.ma-card-head h2{font-size:17px;letter-spacing:-.03em}.ma-card-head .ma-link{font-size:12px;white-space:nowrap}.ma-tag{font-size:8px;letter-spacing:.08em}.ma-item{gap:10px;padding:12px 0}.ma-item b,.ma-shortcut b{font-size:15px}.ma-item small,.ma-shortcut small{font-size:12px}.ma-week{gap:4px;flex-wrap:wrap}.ma-week span{font-size:10px;padding:4px}.ma-item>.ma-link{min-width:44px;flex-shrink:0}.ma-inline{gap:8px;flex-wrap:wrap}.ma-inline input{flex:1;width:0;min-width:120px;font-size:16px;min-height:46px}.ma-clock{font-size:64px;line-height:1.2;margin:18px 0}.ma-shortcut{min-height:70px}
+ .ma-nav{bottom:0;width:100%;border-radius:22px 22px 0 0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px #0000000c}.ma-nav button{min-height:54px;border-radius:14px;font-size:10px;min-width:0}.ma-nav svg{width:22px;height:22px}
+ body[data-view=tracker] main{padding-bottom:calc(112px + env(safe-area-inset-bottom))}#toast{bottom:calc(88px + env(safe-area-inset-bottom));text-align:center}
+ .ma-footer{padding-top:4px}.ma-footer .ma-link{font-size:12px}
+}
+@media(max-width:360px){.ma-home{padding-left:12px;padding-right:12px}.ma-copy{padding:20px}.ma-copy h1{font-size:30px}.ma-card{padding:14px}.ma-card-head h2{font-size:16px}.ma-stat{padding:12px}.ma-stat strong{font-size:22px}}
