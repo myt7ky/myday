@@ -398,7 +398,7 @@ input,select{padding:8px 10px;min-height:40px!important;margin-top:3px;border-ra
     <div class="row"><button class="btn" id="jExp">⬇️ Скачать копию</button><button class="btn sec" id="jImpBtn">⬆️ Загрузить копию</button><input type="file" id="jImp" accept=".json,application/json,text/plain" style="display:none"></div></div>
   <div class="card"><h2>Экономия ИИ и офлайн</h2>
     <label class="row" style="font-size:14px;color:var(--text)"><input type="checkbox" id="eco" style="width:auto;margin:0"> Не вызывать ИИ автоматически (оценка последствий дел)</label>
-    <p class="muted" style="margin-bottom:0">Без ИИ работают: покупки, графики, лимит, дела и напоминания, зал, вес, расчёт нормы, дневник питания по базе. ИИ нужен только для разборов и незнакомых продуктов. Эта страница открывается из интернета; полностью без сети работает отдельный файл-версия (скачайте её у Claude).</p></div>
+    <p class="muted" style="margin-bottom:0">Покупки, дела, тренировки и питание по базе работают без ИИ. Для анализа и распознавания незнакомых продуктов требуется подключение и доступ к сервису.</p></div>
   <div class="card"><h2>Валюта</h2><select id="cur" style="max-width:200px"><option>RON</option><option>€</option><option>$</option><option>₽</option><option>₴</option><option>£</option></select></div>
   <div class="card settings-card"><div class="settings-head"><div><h2>Внешний вид</h2><p class="muted">Тема и интерфейс спрятаны в данных, чтобы не перегружать навигацию.</p></div><span class="settings-icon">⚙️</span></div><div class="fg"><label>Тема интерфейса<select id="themeSelect"><option value="auto">Системная</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label></div></div>
 <div class="card"><h2>Опасная зона</h2><button class="btn dng" id="clr">Удалить все данные</button></div>
@@ -2740,7 +2740,7 @@ body[data-view=tracker],body[data-view=gymApp]{--grad:linear-gradient(135deg,#e7
 const T=':is(body[data-view=tracker],body[data-view=gymApp])',f=document.getElementById('flat');f.textContent=f.textContent.split('@T').join(T);
 const user=new Map();let tm=0;
 function head(c){const k=c.firstElementChild;if(!k)return null;return k.tagName==='H2'?k:(k.querySelector&&k.querySelector(':scope>h2,:scope>div>h2')?k:null)}
-function run(){document.querySelectorAll('main section.on').forEach(sec=>{
+function run(){if(document.documentElement.dataset.visual==='chrome')return;document.querySelectorAll('main section.on').forEach(sec=>{
   if(['t-programs','t-acne','t-photos','t-warm'].includes(sec.id))return;
   const cards=[...sec.querySelectorAll(':scope>.card,:scope>.grid>.card')].filter(c=>!c.closest('#modal')&&head(c));
   if(cards.length<4)return;let seenForm=false;
@@ -2833,5 +2833,6 @@ new MutationObserver(()=>{clearTimeout(window.__hd);window.__hd=setTimeout(decor
 
 
 
+<script src="./app/workspace.js"></script>
 <script src="./app/interactions.js"></script>
 <script src="./app/redesign.js"></script></body></html>
