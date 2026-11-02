@@ -13,6 +13,6 @@ daily.cjs: main task, editing, substeps, tomorrow planning without changing dead
 insights.cjs: real expense totals, periods, cents, history, charts/tables, category filters, limits and health records.
 finance-demo.cjs: income/categories, savings transactions, persistence, backups, isolated demo records/photos and typed local cleanup.
 luxe.cjs: daily rings, category donut keyboard selection, smooth paths, reveal effects and reduced motion.
-clarity.cjs: all 52 guide records, decoding every local image, source credits, zoom and Escape, adding an exercise to the workout, dark/light text contrast >=4.5, health-grid spacing, flat More lists and absence of decorative WebGL. It produces theme/layout/guide screenshots.
+clarity.cjs: all 52 guide records, decoding every local image, source credits, zoom and Escape, adding an exercise to the workout, dark/light text contrast >=4.5, health-grid spacing, flat More lists and restored chrome and neutral graphite colours. It produces theme/layout/guide screenshots.
 
-chrome.cjs is a compatibility alias for clarity.cjs; the decorative WebGL renderer was removed. Screenshot records are fixtures. Service-worker installation/offline behavior, remote APIs and physical mobile keyboards are not covered.
+chrome.cjs checks retained canvas/context, real sculpture motion, reduced motion, context-loss recovery and the SVG fallback when WebGL is unavailable. Screenshot records are fixtures. Service-worker installation/offline behavior, remote APIs and physical mobile keyboards are not covered.

@@ -10,5 +10,7 @@
     home.querySelectorAll('.mi-chart-card,.ma-panel,.mx-pulse-card,.mi-metric').forEach(card=>{if(bound.has(card))return;bound.add(card);card.classList.add('mx-reveal');observed.add(card);observer.observe(card)});
   }
   new MutationObserver(()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync()})}).observe(home,{childList:true,subtree:true});
+  let pointerFrame=0,lastPointer=null;
+  home.addEventListener('pointermove',event=>{if(event.pointerType==='touch'||!motion())return;lastPointer={x:event.clientX,y:event.clientY,card:event.target.closest('.ma-panel,.mi-chart-card,.mx-pulse-card')};if(pointerFrame)return;pointerFrame=requestAnimationFrame(()=>{pointerFrame=0;if(!lastPointer?.card||!motion())return;const rect=lastPointer.card.getBoundingClientRect();lastPointer.card.style.setProperty('--mx-x',lastPointer.x-rect.left+'px');lastPointer.card.style.setProperty('--mx-y',lastPointer.y-rect.top+'px')})},{passive:true});
   sync();window.MyDayLuxe={ready:true};
 })();
