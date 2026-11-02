@@ -1,6 +1,6 @@
 # Browser checks
 
-Run mobile.cjs, daily.cjs, insights.cjs, finance-demo.cjs, luxe.cjs and clarity.cjs with Node. Playwright and Chrome/Chromium are required. Each script runs independently and uses an isolated profile, synthetic HTTPS request routing and disposable records. It does not access the published app or personal data.
+Run mobile.cjs, daily.cjs, insights.cjs, finance-demo.cjs, luxe.cjs, clarity.cjs and interactions.cjs with Node. Playwright and Chrome/Chromium are required. Each script runs independently and uses an isolated profile, synthetic HTTPS request routing and disposable records. It does not access the published app or personal data.
 
 Environment variables:
 - MYDAY_PLAYWRIGHT_PATH: installed Playwright module path.
@@ -16,3 +16,5 @@ luxe.cjs: daily rings, category donut keyboard selection, smooth paths, reveal e
 clarity.cjs: all 52 guide records, decoding every local image, source credits, zoom and Escape, adding an exercise to the workout, dark/light text contrast >=4.5, health-grid spacing, flat More lists and restored chrome and neutral graphite colours. It produces theme/layout/guide screenshots.
 
 chrome.cjs checks retained canvas/context, real sculpture motion, reduced motion, context-loss recovery and the SVG fallback when WebGL is unavailable. Screenshot records are fixtures. Service-worker installation/offline behavior, remote APIs and physical mobile keyboards are not covered.
+
+interactions.cjs uses native Chrome touch input with a mobile viewport to check task completion/postponement and undo, preservation of deadlines and the main task, purchase editing and undo, short/vertical/multi-touch/cancel rejection, ghost-click suppression, visible undo, progress-ring animation, chart morph/crossfade, savings feedback and reduced motion. This is browser touch emulation, not a physical-device test.
