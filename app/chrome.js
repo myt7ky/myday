@@ -37,7 +37,7 @@
   gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);
   let frame=0,last=0,rotation=0,visible=true,pointerX=0,pointerY=0,lost=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  function animated(){return visible&&!document.hidden&&stage.isConnected&&!reduced.matches&&document.documentElement.dataset.motion!=='reduced'&&!lost}
+  function animated(){return (!document.documentElement.dataset.cover||document.documentElement.dataset.cover==='sculpture')&&visible&&!document.hidden&&stage.isConnected&&!reduced.matches&&document.documentElement.dataset.motion!=='reduced'&&!lost}
   function matrix(x,y,z){const cx=Math.cos(x),sx=Math.sin(x),cy=Math.cos(y),sy=Math.sin(y),cz=Math.cos(z),sz=Math.sin(z),m=[cy*cz,cx*sz+sx*sy*cz,sx*sz-cx*sy*cz,0,-cy*sz,cx*cz-sx*sy*sz,sx*cz+cx*sy*sz,0,sy,-sx*cy,cx*cy,0,0,0,0,1];for(let i=0;i<12;i++)m[i]*=.88;return new Float32Array(m)}
   function draw(){if(lost)return;const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;const ratio=Math.min(devicePixelRatio||1,1.5),width=Math.min(800,Math.round(rect.width*ratio)),height=Math.min(520,Math.round(rect.height*ratio));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}gl.viewport(0,0,width,height);const f=1/Math.tan(.64/2),aspect=rect.width/rect.height,near=.1,far=30;gl.uniformMatrix4fv(projectionLocation,false,new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]));gl.uniformMatrix4fv(modelLocation,false,matrix(-.35+pointerY*.14,.58+rotation+pointerX*.12,-.58));gl.uniform1f(lightLocation,document.documentElement.dataset.theme==='light'?1:0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0)}
   function tick(time){frame=0;if(!animated()){draw();return}if(time-last>32){rotation+=.002;last=time;draw()}frame=requestAnimationFrame(tick)}
@@ -47,7 +47,7 @@
   stage.addEventListener('pointerleave',()=>{pointerX=0;pointerY=0});
   const resize=new ResizeObserver(resume);resize.observe(stage);
   const intersection=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;resume()},{threshold:0.02});intersection.observe(stage);
-  new MutationObserver(resume).observe(document.documentElement,{attributes:true,attributeFilter:['data-motion','data-theme']});
+  new MutationObserver(resume).observe(document.documentElement,{attributes:true,attributeFilter:['data-motion','data-theme','data-cover']});
   document.addEventListener('visibilitychange',resume);reduced.addEventListener('change',resume);
   window.MyDayChrome={ready:true,mode:'webgl',refresh:resume};stage.classList.add('has-webgl');resume();
 })();
