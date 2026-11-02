@@ -18,3 +18,5 @@ clarity.cjs: all 52 guide records, decoding every local image, source credits, z
 chrome.cjs checks retained canvas/context, real sculpture motion, reduced motion, context-loss recovery and the SVG fallback when WebGL is unavailable. Screenshot records are fixtures. Service-worker installation/offline behavior, remote APIs and physical mobile keyboards are not covered.
 
 interactions.cjs uses native Chrome touch input with a mobile viewport to check task completion/postponement and undo, preservation of deadlines and the main task, purchase editing and undo, short/vertical/multi-touch/cancel rejection, ghost-click suppression, visible undo, progress-ring animation, chart morph/crossfade, savings feedback and reduced motion. This is browser touch emulation, not a physical-device test.
+
+insights.cjs дополнительно проверяет выводы графиков: пик расходов совпадает с таблицей, пропущенные ночи исключены из среднего, несколько упражнений считаются одним днём тренировки, изменение веса имеет правильный знак; проверяется переход к записи тренировки и порядок главных дел перед статистикой.
