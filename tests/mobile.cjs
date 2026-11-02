@@ -14,7 +14,7 @@ const root=path.resolve(__dirname,'..');
  const out=process.env.MYDAY_QA_OUTPUT || await fs.mkdtemp(path.join(os.tmpdir(),'myday-previews-'));console.log('Screenshots: '+out);await fs.mkdir(out,{recursive:true});
  try{
  await page.goto('https://myday.test/',{waitUntil:'domcontentloaded'});await page.evaluate(()=>localStorage.clear());await page.reload();await page.locator('.ma-tasks').waitFor();
- await page.waitForFunction(()=>window.MyDayChrome?.ready&&window.MyDayInsights?.ready);await page.locator('#ma-task-title').waitFor();assert((await page.locator('#ma-task-title').boundingBox()).y<550);assert.equal(await page.locator('.ma-hero').count(),0);
+ await page.waitForFunction(()=>window.MyDayInsights?.ready);await page.locator('#ma-task-title').waitFor();assert((await page.locator('#ma-task-title').boundingBox()).y<550);assert.equal(await page.locator('.ma-hero').count(),0);
  await page.screenshot({path:out+'/empty-mobile.png',fullPage:true,animations:'disabled'});
  await page.getByRole('textbox',{name:'Новое дело',exact:true}).fill('   ');await page.getByRole('button',{name:'Добавить дело',exact:true}).click();assert.equal(await page.evaluate(()=>S.tasks.length),0);
  await page.getByRole('textbox',{name:'Новое дело',exact:true}).fill('Подготовить план на неделю');await page.getByRole('textbox',{name:'Новое дело',exact:true}).press('Enter');

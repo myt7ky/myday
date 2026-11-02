@@ -13,7 +13,7 @@ const root=path.resolve(__dirname,'..');
  });
  const out=process.env.MYDAY_QA_OUTPUT || await fs.mkdtemp(path.join(os.tmpdir(),'myday-previews-'));console.log('Screenshots: '+out);await fs.mkdir(out,{recursive:true});
  try{
- await page.goto('https://myday.test/?demo=1',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.MyDayInsights?.ready&&window.MyDayLuxe?.ready&&window.MyDayChrome?.ready);
+ await page.goto('https://myday.test/?demo=1',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.MyDayInsights?.ready&&window.MyDayLuxe?.ready);
  assert.equal(await page.locator('.mx-pulse-card').count(),3);assert(await page.locator('.mx-pulse').isVisible());assert((await page.locator('.mx-mini-ring').first().boundingBox()).height>=65);assert.equal(await page.locator('.mx-mini-ring svg').count(),3);await page.screenshot({path:out+'/luxe-home-mobile.png',animations:'disabled'});
  await page.locator('.ma-nav [data-page=buys]').click();const ring=page.locator('.mi-finance-grid .mx-donut');await ring.scrollIntoViewIfNeeded();assert((await ring.boundingBox()).height>=250);const segments=ring.locator('[role=button]');assert(await segments.count()>=5);await segments.first().focus();await page.keyboard.press('Enter');assert.notEqual(await page.getByLabel('Категория покупок',{exact:true}).inputValue(),'');
  await page.locator('.ma-nav [data-page=buys]').click();await page.locator('.mi-finance-grid').scrollIntoViewIfNeeded();const line=page.locator('.mi-line').first();assert((await line.getAttribute('d')).includes('C'));assert.equal(await line.getAttribute('pathLength'),'1');await page.waitForFunction(()=>document.querySelector('.mi-finance-grid .mi-chart-card')?.classList.contains('mx-revealed'));

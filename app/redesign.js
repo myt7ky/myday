@@ -4,7 +4,7 @@
   const stylesheet = el('link');
   stylesheet.rel = 'stylesheet'; stylesheet.href = './app/redesign.css'; document.head.append(stylesheet);
   const chromeStyles=el('link');chromeStyles.rel='stylesheet';chromeStyles.href='./app/chrome.css';document.head.append(chromeStyles);
-  const insightStyles=el('link');insightStyles.rel='stylesheet';insightStyles.href='./app/insights.css';document.head.append(insightStyles);const luxeStyles=el('link');luxeStyles.rel='stylesheet';luxeStyles.href='./app/luxe.css';document.head.append(luxeStyles);
+  const insightStyles=el('link');insightStyles.rel='stylesheet';insightStyles.href='./app/insights.css';document.head.append(insightStyles);const luxeStyles=el('link');luxeStyles.rel='stylesheet';luxeStyles.href='./app/luxe.css';document.head.append(luxeStyles);const clarityStyles=el('link');clarityStyles.rel='stylesheet';clarityStyles.href='./app/clarity.css';document.head.append(clarityStyles);
   document.documentElement.dataset.visual='chrome';
   if(localStorage.getItem('myday-visual-version')!=='chrome-1'){document.documentElement.dataset.theme='dark';localStorage.setItem('myday-theme','dark');localStorage.setItem('myday-visual-version','chrome-1');const theme=document.getElementById('themeSelect');if(theme)theme.value='dark'}
   document.title = 'MyDay — твой день'; document.querySelector('.brand h1').textContent = 'MyDay';
@@ -76,17 +76,7 @@
     const top = el('div', 'ma-top'), wordmark = el('div', 'ma-wordmark'); wordmark.append(el('span', 'ma-mark'), el('b', null, 'myday')); top.append(wordmark, el('span', 'ma-top-note', 'Место для твоего дня'));
     const actions = el('div', 'ma-top-actions'); actions.append(iconButton('search', 'Поиск по приложению', () => document.querySelector('.search-launch button')?.click()), iconButton(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 'Переключить тему', toggleTheme)); top.append(actions); return top;
   }
-  function createChromeStage(){
-    const stage=el('div','ma-chrome-stage');stage.setAttribute('aria-label','Обзор дня');
-    const top=el('div','ma-stage-top');top.append(el('span',null,'ПЛАН / ФОКУС / РИТМ'),el('span','ma-checker'));stage.append(top);
-    const mesh=document.createElementNS('http://www.w3.org/2000/svg','svg');mesh.setAttribute('viewBox','0 0 1000 400');mesh.setAttribute('preserveAspectRatio','none');mesh.setAttribute('class','ma-chrome-mesh');mesh.setAttribute('aria-hidden','true');
-    for(let i=0;i<34;i++){const path=document.createElementNS(mesh.namespaceURI,'path');const y=35+i*8;path.setAttribute('d','M -60 '+y+' C 140 '+(y-90)+',190 '+(y+250)+',410 '+(y+40)+' S 710 '+(y-170)+',1080 '+(y+30));mesh.append(path)}stage.append(mesh);
-    const orbit=el('div','ma-stage-orbit');orbit.setAttribute('aria-hidden','true');stage.append(orbit);
-    const sculpture=el('div','ma-sculpture');sculpture.setAttribute('aria-hidden','true');
-    sculpture.innerHTML='<svg class="ma-chrome-fallback" viewBox="0 0 440 360" aria-hidden="true"><defs><linearGradient id="ma-metal" x1=".2" y1="0" x2=".8" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#090909"/><stop offset=".13" stop-color="#eee"/><stop offset=".19" stop-color="#383838"/><stop offset=".28" stop-color="#000"/><stop offset=".35" stop-color="#fcfcfc"/><stop offset=".42" stop-color="#444"/><stop offset=".54" stop-color="#050505"/><stop offset=".62" stop-color="#fafafa"/><stop offset=".67" stop-color="#777"/><stop offset=".8" stop-color="#090909"/><stop offset=".92" stop-color="#e0e0e0"/><stop offset="1" stop-color="#333"/></linearGradient></defs><path d="M138 235C80 227 69 184 112 155C150 129 194 151 213 106C235 51 292 49 321 85C348 118 307 151 310 183C314 221 351 238 317 270C280 307 235 270 209 290C176 314 121 288 138 235ZM176 211C189 231 222 237 249 217C269 204 260 176 242 169C218 157 197 183 176 190C160 195 160 203 176 211Z" fill="url(#ma-metal)" fill-rule="evenodd" stroke="#b9b9b9" stroke-width="1.2"/><path d="M111 170C165 138 201 163 225 104C245 66 287 61 310 82M146 241C171 275 202 272 229 260C264 247 282 282 316 257M171 197C195 214 214 223 244 200" fill="none" stroke="#fafafa" stroke-width="3" opacity=".7"/></svg>';
-    const canvas=el('canvas','ma-chrome-canvas');canvas.setAttribute('aria-hidden','true');sculpture.append(canvas);stage.append(sculpture,el('div','ma-stage-crosshair'));
-    return stage;
-  }
+  function createChromeStage(){const stage=el('div','ma-chrome-stage');stage.setAttribute('aria-label','Обзор дня');return stage}
   function weekStrip(current) {
     const strip = el('ol', 'ma-week-strip'); strip.setAttribute('aria-label', 'Текущая неделя');
     const start = new Date(); start.setHours(12,0,0,0); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
@@ -228,11 +218,11 @@
     const start=new Date();start.setHours(12,0,0,0);start.setDate(start.getDate()-(start.getDay()+6)%7);const monday=ds(start),days=new Set((S.gym||[]).filter(x=>x.date>=monday&&x.date<=current).map(x=>x.date)).size;tile('gym','Движение',days+(days===1?' день':days>1&&days<5?' дня':' дней'),'С тренировками на этой неделе');section.append(grid);return section;
   }
   function healthScreen(){
-    const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','СВОЙ ТЕМП'),el('h1',null,'Здоровье'),el('p','ma-description','Сон, питание и движение. Всё в одном месте.'));home.append(head);const grid=el('div','ma-health-grid');
+    const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','СВОЙ ТЕМП'),el('h1',null,'Здоровье'),el('p','ma-description','Сон, питание, тренировки и измерения.'));home.append(head);const grid=el('div','ma-health-grid');
     [['sleep','Сон','Длительность, режим и качество'],['food','Питание','Приёмы пищи и дневник питания'],['gym','Тренировки','Журнал подходов и упражнений'],['body','Форма','Вес, замеры и изменения'],['programs','Программа','Твой план тренировок']].forEach(([id,title,desc])=>{const b=button('',()=>go(id),'ma-health-card');b.append(icon(id==='sleep'?'moon':id==='programs'?'tasks':id));const copy=el('div');copy.append(el('h2',null,title),el('p',null,desc));b.append(copy,icon('arrow'));grid.append(b)});home.append(grid);if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.health());
   }
   function moreScreen(){
-    const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПОД РУКОЙ'),el('h1',null,'Твоё пространство'),el('p','ma-description','Только то, что помогает двигаться в своём темпе.'));home.append(head);
+    const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПОД РУКОЙ'),el('h1',null,'Ещё'),el('p','ma-description','Цели, упражнения и настройки.'));home.append(head);
     const grid=el('div','ma-menu-grid');
     [['Планы',[['goals','Цели'],['budget','Бюджет']]],['Практика',[['photos','Фото-прогресс'],['guides','Упражнения'],['strength','Рабочие веса']]],['Настройки',[['data','Данные и резервная копия']]]].forEach(([name,tabs])=>{const group=el('div','ma-menu-group');group.append(el('h2',null,name));tabs.forEach(([id,label])=>{if(!GROUPS.some(g=>g[1].some(x=>x[0]===id)))return;const b=button('',()=>go(id),'ma-menu-link');b.dataset.tab=id;b.append(el('span',null,label),icon('arrow'));group.append(b)});grid.append(group)});home.append(grid);
     const tools=button('Тестовые данные и очистка',()=>go('data-tools'),'ma-menu-link');tools.append(icon('arrow'));home.append(tools);
@@ -241,9 +231,9 @@
     if(days>=7){const b=button('Открыть статистику',()=>go('analytics'),'ma-text-button');b.dataset.tab='analytics';stats.append(b)}else stats.append(el('small',null,'Появится после 7 дней записей · '+days+' / 7'));home.append(stats);
     const preferences=el('div','ma-preferences'),copy=el('div');copy.append(el('b',null,'Движение в интерфейсе'),el('p',null,matchMedia('(prefers-reduced-motion: reduce)').matches?'Уменьшено по настройкам устройства.':'Мягкие переходы и отклик на действия.'));const toggle=button(S.mydayPreferences?.motion===false?'Выключено':'Включено',()=>{S.mydayPreferences={...S.mydayPreferences,motion:S.mydayPreferences?.motion===false};syncMotion();persist()},'ma-motion-toggle');toggle.setAttribute('aria-label','Анимация интерфейса');toggle.setAttribute('aria-pressed',String(S.mydayPreferences?.motion!==false));preferences.append(copy,toggle);home.append(preferences,reviewPanel());
   }
-  function tasksScreen(){const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПО ОДНОМУ ШАГУ'),el('h1',null,'Дела'),el('p','ma-description','Выбери главное. Остальному найди своё время.'));home.append(head,taskPanel(today(),S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===today()).length),focusPanel(S.tasks.filter(t=>!t.done)))}
+  function tasksScreen(){const head=el('div','ma-page-heading');head.append(el('p','ma-eyebrow','ПО ОДНОМУ ШАГУ'),el('h1',null,'Дела'),el('p','ma-description','Дела на сегодня и завтра.'));home.append(head,taskPanel(today(),S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===today()).length),focusPanel(S.tasks.filter(t=>!t.done)))}
   function render(){
-    updateNav();syncMotion();if(document.body.dataset.view!=='hub'){if(window.MyDayInsights?.ready)window.MyDayInsights.decorateLegacy(tab);return}
+    updateNav();syncMotion();if(document.body.dataset.view!=='hub'){return}
     const previous=home.dataset.screen===screen?new Map([...home.querySelectorAll('[data-key]')].map(node=>[node.dataset.key,node.getBoundingClientRect()])):new Map();home.dataset.screen=screen;
     const active=document.activeElement,focusId=active?.id,selection=typeof active?.selectionStart==='number'?[active.selectionStart,active.selectionEnd]:null;home.replaceChildren(topbar());
     if(window.MYDAY_DEMO&&window.MyDayInsights?.ready)home.append(window.MyDayInsights.demoBanner());
@@ -251,12 +241,12 @@
       const current=today(),done=S.tasks.filter(t=>t.done&&t.doneAt?.slice(0,10)===current).length,remaining=S.tasks.filter(t=>!t.done&&scheduled(t,current)).length;
       const heading=el('div','ma-heading'),title=el('div');title.append(el('p','ma-eyebrow',new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})),el('h1',null,'Сегодня'));
       const progress=el('div','ma-day-progress'),ring=el('span','ma-progress-ring');ring.style.setProperty('--progress',(done+remaining?done/(done+remaining)*100:0)+'%');ring.setAttribute('aria-hidden','true');ring.append(el('span',null,done));const text=el('div');text.append(el('b',null,done+remaining?done+' из '+(done+remaining)+' выполнено':'План пока свободен'),el('span',null,remaining?remaining+(remaining===1?' дело впереди':remaining<5?' дела впереди':' дел впереди'):done?'На сегодня план выполнен':'Твой день — твои приоритеты'));progress.append(ring,text);progress.setAttribute('role','group');progress.setAttribute('aria-label',done+' выполнено, '+remaining+' осталось');heading.append(title,progress);chromeStage.querySelector('.ma-heading')?.remove();chromeStage.append(heading);const quickSlot=el('div','mx-quick-slot');home.append(chromeStage,quickSlot,weekStrip(current));if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.pulse());
-      const grid=el('div','ma-grid');grid.append(taskPanel(current,done),habitPanel(current),focusPanel(S.tasks.filter(t=>!t.done)));const quickForm=grid.querySelector('.ma-task-form');if(quickForm)quickSlot.append(quickForm);if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.activity());home.append(grid);home.append(reviewPanel(),summaryPanel(current));const footer=el('div','ma-footer');footer.append(el('span',null,'Без спешки. По одному шагу.'),button('Данные и резервная копия',()=>go('data'),'ma-text-button'));home.append(footer);
-    }tick();if(window.MyDayInsights?.ready)window.MyDayInsights.decorateHeader(home,screen);window.MyDayChrome?.refresh();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
+      const grid=el('div','ma-grid');grid.append(taskPanel(current,done),habitPanel(current),focusPanel(S.tasks.filter(t=>!t.done)));const quickForm=grid.querySelector('.ma-task-form');if(quickForm)quickSlot.append(quickForm);if(window.MyDayInsights?.ready)home.append(window.MyDayInsights.activity());home.append(grid);home.append(reviewPanel(),summaryPanel(current));const footer=el('div','ma-footer');footer.append(el('span',null,''),button('Данные и резервная копия',()=>go('data'),'ma-text-button'));home.append(footer);
+    }tick();const restore=focusId&&document.getElementById(focusId);if(restore){restore.focus({preventScroll:true});if(selection)restore.setSelectionRange(...selection)}
     if(motionAllowed())home.querySelectorAll('[data-key]').forEach(node=>{const old=previous.get(node.dataset.key),now=node.getBoundingClientRect();if(old&&Math.abs(old.top-now.top)>1)node.animate([{transform:'translateY('+(old.top-now.top)+'px)'},{transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})});
   }
   function tick(){const c=document.getElementById('ma-clock'),ms=S.myFocusEnd?Math.max(0,S.myFocusEnd-Date.now()):(S.myFocusRemaining??25*60e3);if(S.myFocusEnd&&ms===0){delete S.myFocusEnd;S.myFocusRemaining=0;save();toast('Фокус завершён. Время для перерыва.');render();return}if(c){const seconds=Math.ceil(ms/1000);c.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}}
-  function syncChrome(){let meta=document.querySelector('meta[name="theme-color"]');if(!meta){meta=el('meta');meta.name='theme-color';document.head.append(meta)}meta.content=document.documentElement.dataset.theme==='dark'?'#080808':'#e9e9e7'}
+  function syncChrome(){let meta=document.querySelector('meta[name="theme-color"]');if(!meta){meta=el('meta');meta.name='theme-color';document.head.append(meta)}meta.content=document.documentElement.dataset.theme==='dark'?'#111310':'#deded9'}
   syncChrome();new MutationObserver(syncChrome).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
   home.dataset.day=today();setInterval(()=>{tick();if(document.body.dataset.view==='hub'&&screen==='home'&&home.dataset.day!==today()){home.dataset.day=today();render()}},1000);
   new MutationObserver(render).observe(document.body,{attributes:true,attributeFilter:['data-view','data-tab']});window.addEventListener('pageshow',render);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();render()}});
@@ -266,7 +256,7 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('.ma-dialog[open]'))document.querySelectorAll('.ma-task-menu[open],.ma-habit-options[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary')?.focus()})});
   try{history.replaceState({...history.state,mydayScreen:'home',mydayTab:tab},'')}catch(e){}render();
   const luxeScript=el('script');luxeScript.src='./app/luxe.js';document.head.append(luxeScript);
-  const sculptureScript=el('script');sculptureScript.src='./app/chrome.js';document.head.append(sculptureScript);
+  
   const insightScript=el('script');insightScript.src='./app/insights.js';insightScript.onload=()=>{window.MyDayInsights.configure({state:()=>S,categories:()=>CATS,el,button,icon,iconButton,panel,makeDialog,labeled,money,today,ds,go,render,motionAllowed,sleepDuration,
     commitExpense(item,editing){const i=S.items.findIndex(x=>x.id===item.id);if(editing&&i<0){toast('Эта покупка уже удалена');return}if(i>=0)S.items[i]=item;else S.items.push(item);delete S.analysis[item.id];save();cloudItem(item);cloudAnalysis()},
     removeExpense(id){S.items=S.items.filter(x=>x.id!==id);delete S.analysis[id];save();cloudDel(id);cloudAnalysis()},
