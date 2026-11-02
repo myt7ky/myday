@@ -8,6 +8,7 @@ node tests/daily.cjs
 node tests/chrome.cjs
 node tests/insights.cjs
 node tests/finance-demo.cjs
+node tests/luxe.cjs
 ```
 
 Optional environment variables:
@@ -28,5 +29,7 @@ The check serves repository files through Playwright request routing at a synthe
 `insights.cjs` covers the light overview hero, expense validation and decimal amounts, creation/edit/reload/delete/undo, real period totals excluding future entries, daily/cumulative chart tables and keyboard navigation, custom and missing categories, search, month selection, monthly limits, four health charts with missing-record gaps, the habit heatmap, contextual illustrations, both themes, and chart dimensions/overflow across seven viewport widths.
 
 `finance-demo.cjs` covers monthly income and category budgets, savings creation/deposits/withdrawals/overdraft rejection/persistence, responsive finance tabs, all populated navigation sections, JSON download, isolated personal/demo records and photos, typed confirmation, demo-only cleanup and full local cleanup while preserving unrelated application storage. Browser downloads use an explicit writable directory under the test profile.
+
+`luxe.cjs` covers the daily rings, real category donut segments and keyboard selection, cubic SVG plot paths, viewport-triggered reveal, all finance tabs at four widths in both themes, and reduced-motion visibility/disabled animation.
 
 Limits: service-worker installation/offline behavior, remote AI and cloud APIs, and physical mobile keyboards are not covered. Screenshot records are test fixtures, not user records.
