@@ -88,7 +88,7 @@
     return stage;
   }
   function weekStrip(current) {
-    const strip = el('ol', 'ma-week-strip'); strip.setAttribute('aria-label', 'Текущая неделя');
+    const wrap=el('div','mw-week'),head=el('div','mw-week-heading');head.append(el('span',null,'Эта неделя'));const strip = el('ol', 'ma-week-strip'); strip.setAttribute('aria-label', 'Текущая неделя');
     const start = new Date(); start.setHours(12,0,0,0); start.setDate(start.getDate() - (start.getDay() + 6) % 7);
     for (let i = 0; i < 7; i++) {
       const d = new Date(start); d.setDate(start.getDate()+i); const key=ds(d), item=el('li', key===current?'is-today':''); item.append(el('span',null,weekday(d)),el('b',null,d.getDate()));
@@ -96,7 +96,7 @@
       const recorded=S.tasks.some(t=>t.done&&t.doneAt?.slice(0,10)===key)||habits().some(h=>h.log?.[key]);
       const dot=el('i',recorded?'has-record':''); dot.setAttribute('aria-hidden','true'); item.append(dot);
       item.setAttribute('aria-label',d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'long'})+(recorded?', есть выполненные дела или привычки':'')); strip.append(item);
-    } return strip;
+    }const count=strip.querySelectorAll('.has-record').length,info=el('span','mw-week-info');info.textContent=count?'Дней с отметками: '+count+' из 7':'Начни свой ритм с одного дела';head.append(info);wrap.append(head,strip);return wrap;
   }
   function setUndo(label,restore){undoTask={label,restore}}
   function feedback(rect){
