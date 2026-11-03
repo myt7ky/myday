@@ -12,7 +12,7 @@
 </head><body><div style="min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,sans-serif;color:#6b7280">Загрузка «MyDay»…</div>
 <script>
 (async()=>{
-  const part="./app/app.html",v="70";
+  const part="./app/app.html",v="71";
   try{if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{})}catch(e){}
   try{
     const r=await fetch(part+"?v="+v,{cache:"no-store"});

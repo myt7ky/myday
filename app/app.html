@@ -1880,7 +1880,7 @@ const ra=renderAll;renderAll=function(){ra();if(tab==='habits')renderStreaks()};
 const KEYS=['items','tasks','gym','body','meals','sleep','goals','habits','tpls','recurring'];let snap=null,ut,bar=null;
 function showUndo(fn){if(bar)bar.remove();bar=el('div');bar.style.cssText='position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 8px 8px 16px;border-radius:12px;font-size:14px;z-index:60;display:flex;align-items:center;gap:10px;white-space:nowrap';
  bar.appendChild(el('span',null,'Удалено'));const b=el('button',null,'Отменить');b.style.cssText='border:0;border-radius:9px;padding:8px 12px;background:var(--accent);color:#fff;font-weight:700';b.onclick=()=>{fn();bar.remove();bar=null;toast('Восстановлено')};bar.appendChild(b);document.body.appendChild(bar);clearTimeout(ut);ut=setTimeout(()=>{if(bar){bar.remove();bar=null}},7000)}
-document.addEventListener('click',e=>{if(!e.target.closest('button'))return;snap={};KEYS.forEach(k=>snap[k]=(S[k]||[]).slice());setTimeout(()=>{if(!snap)return;const s=snap;snap=null;const lost=KEYS.filter(k=>(S[k]||[]).length<s[k].length);if(lost.length)showUndo(()=>{lost.forEach(k=>{S[k]=s[k]});save();renderAll()})},0)},true);
+document.addEventListener('click',e=>{if(!e.target.closest('button')||e.target.closest('.ma-home,.ma-dialog'))return;snap={};KEYS.forEach(k=>snap[k]=(S[k]||[]).slice());setTimeout(()=>{if(!snap)return;const s=snap;snap=null;const lost=KEYS.filter(k=>(S[k]||[]).length<s[k].length);if(lost.length)showUndo(()=>{lost.forEach(k=>{S[k]=s[k]});save();renderAll()})},0)},true);
 /* зал: что было в прошлый раз */
 const gh=el('div','meta');gh.id='g_hint';gh.style.margin='6px 0';$('gAdd').before(gh);
 function hint(){gh.innerHTML='';const n=$('g_ex').value.trim().toLowerCase();if(!n)return;const g=S.gym.filter(x=>x.ex.toLowerCase()===n).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id)[0];if(!g)return;
@@ -2839,4 +2839,5 @@ new MutationObserver(()=>{clearTimeout(window.__hd);window.__hd=setTimeout(decor
 <script src="./app/personalize.js"></script>
 <script src="./app/finesse.js"></script>
 <script src="./app/workout.js"></script>
+<script src="./app/calendar.js"></script>
 <script src="./app/redesign.js"></script></body></html>
