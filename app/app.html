@@ -1841,10 +1841,10 @@ function rtTick(){const s=Math.max(0,Math.ceil((rtEnd-Date.now())/1000));rtOut()
 
 /* 1. синхронизация */
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}return null};
-const sKey=()=>LS('myday-sync-key')||'',sUrl=()=>LS('myday-sync-url')||'/api/sync',payload=()=>{const o={...S};['analysis','overall','synced','goalsDirty'].forEach(k=>delete o[k]);return JSON.stringify(o)};
+const sKey=()=>LS('myday-sync-key')||'',sUrl=()=>LS('myday-sync-url')||'/api/sync',payload=()=>{const o={...S};['analysis','overall','synced','goalsDirty','mydayNotes','mydayNotesCapture'].forEach(k=>delete o[k]);return JSON.stringify(o)};
 async function api(method,body){const r=await fetch(sUrl(),{method,headers:{'Content-Type':'application/json','x-sync-key':encodeURIComponent(sKey())},body:body?JSON.stringify(body):undefined}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка '+r.status);return d}
 const AR=['items','tasks','gym','body','meals','sleep','goals','habits','tpls','recurring','foodDb','mydaySavings'];
-function adopt(c){Object.keys(c).forEach(k=>{S[k]=c[k]});AR.forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});save();try{fillProf();$('limit').value=S.limit||'';$('cur').value=S.cur}catch(e){}}
+function adopt(c){Object.keys(c).filter(k=>!['mydayNotes','mydayNotesCapture'].includes(k)).forEach(k=>{S[k]=c[k]});AR.forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});save();try{fillProf();$('limit').value=S.limit||'';$('cur').value=S.cur}catch(e){}}
 function merge(c){AR.forEach(k=>{if(Array.isArray(c[k])){const h=new Set((S[k]||[]).map(x=>x.id||x.n));S[k]=S[k]||[];c[k].forEach(x=>{if(x&&!h.has(x.id||x.n))S[k].push(x)})}});S.mydayFinance={months:{...(c.mydayFinance?.months||{}),...(S.mydayFinance?.months||{})}};S.budgets={...(c.budgets||{}),...(S.budgets||{})};S.weekFocus={...(c.weekFocus||{}),...(S.weekFocus||{})};S.mydayDaily=mergeMydayDaily(S.mydayDaily,c.mydayDaily);if(!S.limit&&c.limit)S.limit=c.limit;save()}
 let busy=false;const st=m=>{const e=$('sy_st');if(e)e.textContent=m};
 async function doSync(manual){if(window.MYDAY_DEMO||LS('myday-sync-disabled')==='1'||!sKey()||busy)return;busy=true;try{
@@ -1917,7 +1917,7 @@ function all(){const o=[],A=(type,icon,title,sub,tb,extra,w)=>o.push({type,icon,
  S.goals.forEach(g=>A('Цель','🎯',g.title||'Цель','Цель · '+g.target,'goals',g.metric,6));
  S.habits.forEach(h=>A('Привычка','🔁',h.name,'серия '+hStreakSafe(h)+' дн.','habits','привычка',8));
  (S.recurring||[]).forEach(r=>A('Повтор','🔁',r.name,'раз в '+r.every+' дн.','budget',r.amount,3));
- (S.mydayNotes||[]).forEach(n=>{A('Идея Shorts','↗',n.title||'Без названия',({idea:'Идея',work:'В работе',done:'Готово',published:'Опубликовано'}[n.status]||'Идея'),'notes',[n.idea,n.prompt,n.voice].join(' '),8);o[o.length-1].noteId=n.id});return o}
+ (S.mydayNotes||[]).filter(n=>!n.deletedAt).forEach(n=>{A('Идея Shorts','↗',n.title||'Без названия',({idea:'Идея',script:'Сценарий',generation:'Генерация',editing:'Монтаж',published:'Опубликовано'}[n.status]||'Идея'),'notes',[n.idea,n.prompt,n.voice].join(' '),8);o[o.length-1].noteId=n.id});return o}
 const dRec=d=>{if(!d)return 0;const n=(Date.now()-new Date(String(d).slice(0,10)+'T00:00:00').getTime())/864e5;return n<0?3:Math.max(0,Math.round((5-n/6)*100)/100)};
 const hStreakSafe=h=>{let n=0;for(let i=h.log&&h.log[today()]?0:1;i<400;i++){if(h.log&&h.log[ds(new Date(Date.now()-i*864e5))])n++;else break}return n};
 function foods(qs){const o=[];if(!qs.some(q=>q.length>=3))return o;(typeof foodList==='function'?foodList():[]).forEach(f=>{const h=nrm(f.n+' '+(f.al||''));if(qs.every(q=>h.split(' ').some(t=>hit(q,t))))o.push({type:'Продукт',icon:'🥣',title:f.n,sub:f.k+' ккал · Б '+f.p+' · Ж '+f.f+' · У '+f.c+' на 100 г',tab:'food',tt:nrm(f.n).split(' '),sc:10+(f.my?5:0)})});return o.slice(0,6)}
@@ -2841,5 +2841,7 @@ new MutationObserver(()=>{clearTimeout(window.__hd);window.__hd=setTimeout(decor
 <script src="./app/workout.js"></script>
 <script src="./app/calendar.js"></script>
 <script src="./app/notes.js"></script>
+<script src="./app/notes-sync.js"></script>
+<script src="./app/install.js"></script>
 <script src="./app/weekly.js"></script>
 <script src="./app/redesign.js"></script></body></html>

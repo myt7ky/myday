@@ -11,8 +11,9 @@
 <meta name="apple-mobile-web-app-title" content="MyDay">
 </head><body><div style="min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,sans-serif;color:#6b7280">Загрузка «MyDay»…</div>
 <script>
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.MyDayInstallPrompt=e});
 (async()=>{
-  const part="./app/app.html",v="71";
+  const part="./app/app.html",v="75";
   try{if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{})}catch(e){}
   try{
     const r=await fetch(part+"?v="+v,{cache:"no-store"});

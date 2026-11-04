@@ -38,3 +38,8 @@ insights.cjs дополнительно проверяет выводы граф
 - `studio.cjs`: note text/reference upload/reload, search/status, both themes/4 widths, layout preview/cancel/persistence, reference backup/import, recorded workout maximum and PNG generation/download link (automated Chrome downloads were canceled by this environment).
 
 - `search.cjs`: overlay keeps the current modern/legacy workspace, scroll/history/focus/inert, Ctrl+K/Escape and navigation to Shorts/weekly/tasks; both themes at 320–1440 px.
+
+- `shorts.cjs`: quick-capture draft, five-stage board, desktop drag/mobile stage selection, package ZIP, install help/shortcut, unconfigured hosting, both themes/4 widths.
+- `notes-api.cjs`: handler with mock Redis, auth/namespace/origin/validation and stale revision.
+- `notes-sync.cjs`: two devices with mock API, references/concurrent changes/deletions/CAS retry/edit during upload/offline reload/disconnect/demo.
+- `shorts-offline.cjs`: real local HTTP and service worker, offline startup/reload and persistent note; no API caching.
