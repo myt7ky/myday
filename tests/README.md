@@ -36,3 +36,5 @@ insights.cjs дополнительно проверяет выводы граф
 - `weekly.cjs`: incomplete/full week comparison, recorded dates, categories, timed-set volume exclusion, missing sleep, savings inflow/withdrawal, read-only navigation, calendar links/history, empty states, both themes at 320/390/768/1440 px.
 
 - `studio.cjs`: note text/reference upload/reload, search/status, both themes/4 widths, layout preview/cancel/persistence, reference backup/import, recorded workout maximum and PNG generation/download link (automated Chrome downloads were canceled by this environment).
+
+- `search.cjs`: overlay keeps the current modern/legacy workspace, scroll/history/focus/inert, Ctrl+K/Escape and navigation to Shorts/weekly/tasks; both themes at 320–1440 px.
