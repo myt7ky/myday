@@ -34,3 +34,5 @@ insights.cjs дополнительно проверяет выводы граф
 `calendar.cjs`: точные даты выполненных/запланированных дел, суммы покупок, старые/новые подходы и секунды, реальные маркеры, отсутствие изменений при просмотре, только планы для будущих дат, создание/редактирование/удаление/отмена на выбранную дату, черновики, назад/вперёд, сегодня/недели/год/високосные даты/полночь/клавиатура и обе темы на 320–1440 px.
 
 - `weekly.cjs`: incomplete/full week comparison, recorded dates, categories, timed-set volume exclusion, missing sleep, savings inflow/withdrawal, read-only navigation, calendar links/history, empty states, both themes at 320/390/768/1440 px.
+
+- `studio.cjs`: note text/reference upload/reload, search/status, both themes/4 widths, layout preview/cancel/persistence, reference backup/import, recorded workout maximum and PNG generation/download link (automated Chrome downloads were canceled by this environment).
