@@ -1,0 +1,85 @@
+# Exercise image credits
+
+Licensed teaching images from Everkinetic, wger contributors and Bryl Lim. Original files and unmodified previews are included locally. Complete file-by-file source URLs, authors and licences: ATTRIBUTION.json. These image licences do not apply to MyDay application code. Downloaded 2026-11-02. The four white-outline Workout Guide SVGs are displayed with CSS inversion for contrast; their source bytes are unchanged.
+
+- wger-68.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/192/Bench-press-1.png
+- wger-70.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/192/Bench-press-2.png
+- wger-113.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/97/Dumbbell-bench-press-1.png
+- wger-114.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/97/Dumbbell-bench-press-2.png
+- wger-593.image.svg — roneydya; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/129/b263c968-e067-4750-916a-d8758a7df23e.webp
+- wger-212.image.svg — cshep442; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/238/2fc242d3-5bdd-4f97-99bd-678adb8c96fc.png
+- wger-211-400.image.svg — cshep442; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/194/34600351-8b0b-4cb0-8daa-583537be15b0.png; supplied preview: https://wger.de/media/exercise-images/194/34600351-8b0b-4cb0-8daa-583537be15b0.png.400x400_q85.png
+- wger-615.image.svg — Workout Guru; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/1801/60043328-1cfb-4289-9865-aaf64d5aaa28.jpg
+- wger-573.image.svg — Участники wger; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/371/d2136f96-3a43-4d4c-9944-1919c4ca1ce1.webp
+- wger-121.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/113/Walking-lunges-1.png
+- wger-122.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/113/Walking-lunges-2.png
+- wger-179.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/154/lying-leg-curl-machine-large-1.png
+- wger-180.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/154/lying-leg-curl-machine-large-2.png
+- wger-386.image.svg — Franpol; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/369/78c915d1-e46d-4d30-8124-65d68664c3ef.png
+- wger-437.image.svg — clafal; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/622/9a429bd0-afd3-4ad0-8043-e9beec901c81.jpeg
+- wger-712-400.image.svg — Участники wger; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/265/7528acb4-b2cc-4b75-b6ae-d514cbd4f78b.png; supplied preview: https://wger.de/media/exercise-images/265/7528acb4-b2cc-4b75-b6ae-d514cbd4f78b.png.400x400_q85.png
+- wger-332.image.svg — philip; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/184/1709c405-620a-4d07-9658-fade2b66a2df.jpeg
+- wger-84.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/109/Barbell-rear-delt-row-1.png
+- wger-90.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/109/Barbell-rear-delt-row-2.png
+- wger-391.image.svg — Franpol; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/158/0d51a0f2-622f-434b-beb8-1a003c54712a.png
+- wger-143.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/143/Cable-seated-rows-2.png
+- wger-144.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/143/Cable-seated-rows-1.png
+- wger-323.image.svg — Imobard; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/475/b0554016-16fd-4dbe-be47-a2a17d16ae0e.jpg
+- wger-11.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/128/Hyperextensions-1.png
+- wger-12.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/128/Hyperextensions-2.png
+- wger-43.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/150/Barbell-shrugs-1.png
+- wger-44.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/150/Barbell-shrugs-2.png
+- wger-647-400.image.svg — nishant0712; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/1893/7dbad19e-0616-41fd-9d7d-3e21649c0eea.png; supplied preview: https://wger.de/media/exercise-images/1893/7dbad19e-0616-41fd-9d7d-3e21649c0eea.png.400x400_q85.png
+- wger-173.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/123/dumbbell-shoulder-press-large-1.png
+- wger-174.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/123/dumbbell-shoulder-press-large-2.png
+- wger-177.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/148/lateral-dumbbell-raises-large-2.png
+- wger-178.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/148/lateral-dumbbell-raises-large-1.png
+- wger-218.image.svg — cshep442; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/487/ad724e5c-b1ed-49e8-9279-a17545b0dd0b.png
+- wger-564.image.svg — Участники wger; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/693/05c91bd2-7814-40b6-b2d1-51ae942b8321.png
+- wger-23.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/81/Biceps-curl-1.png
+- wger-24.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/81/Biceps-curl-2.png
+- wger-47.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/86/Bicep-hammer-curl-1.png
+- wger-48.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/86/Bicep-hammer-curl-2.png
+- wger-19.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/129/Standing-biceps-curl-1.png
+- wger-20.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/129/Standing-biceps-curl-2.png
+- wger-60.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/84/Lying-close-grip-triceps-press-to-chin-1.png
+- wger-61.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/84/Lying-close-grip-triceps-press-to-chin-2.png
+- wger-484-400.image.svg — Участники wger; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/1336/ebf88217-df26-4ef7-94cb-f0c2220c6abe.webp; supplied preview: https://wger.de/media/exercise-images/1336/ebf88217-df26-4ef7-94cb-f0c2220c6abe.webp.400x400_q85.png
+- wger-3.image.svg — Участники wger; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/91/Crunches-1.png
+- wger-4.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/91/Crunches-2.png
+- wger-139.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/125/Leg-raises-2.png
+- wger-140.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/125/Leg-raises-1.png
+- wger-346-400.image.svg — utkb; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png; supplied preview: https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png.400x400_q85.png
+- wger-426.image.svg — lion; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/1193/70ca5d80-3847-4a8c-8882-c6e9e485e29e.png
+- wger-129.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/41/Incline-bench-press-1.png
+- wger-130.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/41/Incline-bench-press-2.png
+- wger-15.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/88/Narrow-grip-bench-press-1.png
+- wger-16.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/88/Narrow-grip-bench-press-2.png
+- wger-326.image.svg — philip; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/1086/b2ee8d9b-0480-4992-8494-c223b37c2696.jpg
+- wger-149-400.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/191/Front-squat-1-857x1024.png; supplied preview: https://wger.de/media/exercise-images/191/Front-squat-1-857x1024.png.400x400_q85.png
+- wger-150-400.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/191/Front-squat-2-857x1024.png; supplied preview: https://wger.de/media/exercise-images/191/Front-squat-2-857x1024.png.400x400_q85.png
+- wger-328.image.svg — philip; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/203/1c052351-2af0-4227-aeb0-244008e4b0a8.jpeg
+- wger-383.image.svg — Franpol; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/988/6283b258-a4d7-4833-84f7-a38987022d3d.png
+- wger-335.image.svg — philip; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/999/d0931eb3-8db0-4049-bb08-aa4036072056.jfif
+- wger-571-400.image.svg — Участники wger; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/630/b0f0c7d8-5878-4d9e-b820-21acc013741d.webp; supplied preview: https://wger.de/media/exercise-images/630/b0f0c7d8-5878-4d9e-b820-21acc013741d.webp.400x400_q85.png
+- wger-410.image.svg — Franpol; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://wger.de/media/exercise-images/81/a751a438-ae2d-4751-8d61-cef0e9292174.png
+- wger-77.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/106/T-bar-row-1.png
+- wger-79.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://wger.de/media/exercise-images/106/T-bar-row-2.png
+- commons-romanian-deadlift-1.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Romanian-deadlift-1.png
+- commons-romanian-deadlift-2.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Romanian-deadlift-2.png
+- commons-side-plank-1.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Side-plank-1.png
+- commons-side-plank-2.image.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Side-plank-2.png
+- commons-arnold-press-1.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Arnold_press_1.svg
+- commons-arnold-press-2.svg — Everkinetic; CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); source: https://commons.wikimedia.org/wiki/File:Arnold_press_2.svg
+- everkinetic-0079-relaxation.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0079-relaxation.svg
+- everkinetic-0079-tension.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0079-tension.svg
+- everkinetic-0205-relaxation.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0205-relaxation.svg
+- everkinetic-0205-tension.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0205-tension.svg
+- workout-guide-face-pull-frame-1.svg — Bryl Lim; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://bryllim.github.io/workout-guide/exercises/face-pull/
+- workout-guide-face-pull-frame-3.svg — Bryl Lim; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://bryllim.github.io/workout-guide/exercises/face-pull/
+- workout-guide-hanging-leg-raise-frame-1.svg — Bryl Lim; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://bryllim.github.io/workout-guide/exercises/hanging-leg-raise/
+- workout-guide-hanging-leg-raise-frame-3.svg — Bryl Lim; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://bryllim.github.io/workout-guide/exercises/hanging-leg-raise/
+- everkinetic-0077-relaxation.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0077-relaxation.svg
+- everkinetic-0077-tension.svg — Everkinetic; CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/); source: https://github.com/everkinetic/data/blob/main/dist/svg/0077-tension.svg
+
+Raster source bytes are embedded unchanged in self-contained SVG containers with their original dimensions. Containers simplify packaging; they do not alter pixels or remove image attribution. ATTRIBUTION.json maps each container to its source file.

@@ -3,6 +3,9 @@
   "functions": {
     "api/ai.js": {
       "maxDuration": 120
+    },
+    "api/notes-sync.js": {
+      "maxDuration": 30
     }
   }
 }

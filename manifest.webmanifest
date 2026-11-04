@@ -1,13 +1,13 @@
 {
-  "name": "MyApp — твой день",
-  "short_name": "MyApp",
-  "description": "Личный трекер",
+  "name": "MyDay — твой день",
+  "short_name": "MyDay",
+  "description": "Дела, тренировки и студия идей Shorts",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0c0c10",
-  "theme_color": "#0c0c10",
+  "background_color": "#101013",
+  "theme_color": "#101013",
   "lang": "ru",
   "icons": [
     {
@@ -24,6 +24,18 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "Поймать идею Shorts",
+      "short_name": "+ Идея",
+      "url": "./?capture=shorts",
+      "icons": [
+        {
+          "src": "./icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
     {
       "name": "+ Покупка",
       "short_name": "+ Покупка",
